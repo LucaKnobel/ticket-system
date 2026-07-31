@@ -131,10 +131,6 @@ Hono Route Handler → Rate Limit → Auth/Session → Validation (Zod) → Mapp
 - Use secure session cookies (`HttpOnly`, `Secure`, `SameSite`)
 - Store only hashed session tokens in the database
 
-### See:
-
-- [Security Documentation](/docs/security.md)
-
 ---
 
 ## Code Quality
