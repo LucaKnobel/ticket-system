@@ -7,6 +7,17 @@
 .idea/workspace.xml
 .idea/usage.statistics.xml
 .idea/shelf
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
+
+.eslintcache
 
 # deps
 node_modules/
@@ -47,3 +58,20 @@ docker/proxy/certs/*.key
 /generated/prisma
 
 cookies.txt
+
+
+
+dist
+dist-ssr
+*.local
+
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# Vitest
+__screenshots__/
+
+# Vite
+*.timestamp-*-*.mjs
