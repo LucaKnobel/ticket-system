@@ -26,7 +26,10 @@
         "bradlc.vscode-tailwindcss",
         "bruno-api-client.bruno",
         "snyk-security.snyk-vulnerability-scanner",
-        "aquasecurityofficial.trivy-vulnerability-scanner"
+        "aquasecurityofficial.trivy-vulnerability-scanner",
+        "vitest.explorer",
+        "EditorConfig.EditorConfig",
+        "oxc.oxc-vscode"
       ],
       "settings": {
         "editor.formatOnSave": true,
