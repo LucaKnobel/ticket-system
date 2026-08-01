@@ -67,10 +67,6 @@ Hono Route Handler → Rate Limit → Auth/Session → Validation (Zod) → Mapp
 - Validation must occur before entering application logic
 - Mapping between DTOs and internal models is required
 
-### See:
-
-- [Architecture Documentation](/docs/architecture.md)
-
 ---
 
 ## Backend
