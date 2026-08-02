@@ -1,21 +1,36 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+const email = ref("");
+const password = ref("");
+
+const onSubmit = () => {
+  console.log({
+    email: email.value,
+    password: password.value,
+  });
+};
+</script>
+
 <template>
-  <form class="login-form" @submit.prevent>
+  <form class="login-form" @submit.prevent="onSubmit">
     <h1 class="title">Sign in</h1>
 
     <p class="subtitle">
-      Sign in to access the ticket system
+      Sign in to access the ticket system.
     </p>
 
     <div class="field">
       <label for="email">Email</label>
 
-      <input id="email" name="email" type="email" autocomplete="email" placeholder="Enter your email" required />
+      <input id="email" v-model="email" name="email" type="email" autocomplete="email" placeholder="Enter your email"
+        required />
     </div>
 
     <div class="field">
       <label for="password">Password</label>
 
-      <input id="password" name="password" type="password" autocomplete="current-password"
+      <input id="password" v-model="password" name="password" type="password" autocomplete="current-password"
         placeholder="Enter your password" required />
     </div>
 
@@ -45,7 +60,6 @@
 
 .title {
   margin-bottom: 0.5rem;
-
   text-align: center;
 }
 
@@ -65,7 +79,6 @@
 
 .field label {
   margin-bottom: 0.5rem;
-
   font-weight: 500;
 }
 
