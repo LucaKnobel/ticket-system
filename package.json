@@ -2,8 +2,12 @@
   "name": "ticket-system",
   "private": true,
   "scripts": {
+    "clean": "npm run clean -w @ticket-system/shared && rm -rf backend/dist frontend/dist",
     "build": "npm run build -w @ticket-system/shared && npm run build -w @ticket-system/backend && npm run build -w @ticket-system/frontend",
-    "type-check": "npm run build -w @ticket-system/backend && npm run type-check -w @ticket-system/frontend"
+    "type-check": "npm run build -w @ticket-system/shared && npm run build -w @ticket-system/backend && npm run type-check -w @ticket-system/frontend",
+    "dev:shared": "npm run dev -w @ticket-system/shared",
+    "dev:backend": "npm run dev -w @ticket-system/backend",
+    "dev:frontend": "npm run dev -w @ticket-system/frontend"
   },
   "workspaces": [
     "backend",
