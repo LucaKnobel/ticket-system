@@ -5,8 +5,7 @@ import LoginForm from "@/components/LoginForm.vue";
 
 <template>
   <main class="login-page">
-    <AppLogo />
-
+    <AppLogo size="lg" />
     <LoginForm />
   </main>
 </template>
