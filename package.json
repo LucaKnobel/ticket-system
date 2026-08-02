@@ -1,0 +1,13 @@
+{
+  "name": "ticket-system",
+  "private": true,
+  "scripts": {
+    "build": "npm run build -w @ticket-system/shared && npm run build -w @ticket-system/backend && npm run build -w @ticket-system/frontend",
+    "type-check": "npm run build -w @ticket-system/backend && npm run type-check -w @ticket-system/frontend"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "shared"
+  ]
+}

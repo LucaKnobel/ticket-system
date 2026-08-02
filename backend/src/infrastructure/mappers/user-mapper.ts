@@ -1,9 +1,11 @@
 import type { User } from "@application/models/user.js";
-import type { LoginUserResponseDto } from "@infrastructure/validation/user-schemas.js";
-import { LoginUserResponseSchema } from "@infrastructure/validation/user-schemas.js";
+import {
+  LoginResponseSchema,
+  type LoginResponse as LoginUserResponseDto,
+} from "@ticket-system/shared/dto/auth";
 
 export const toLoginUserResponseDto = (user: User): LoginUserResponseDto => {
-  return LoginUserResponseSchema.parse({
+  return LoginResponseSchema.parse({
     id: user.id,
     name: user.name,
     email: user.email,
