@@ -1,6 +1,7 @@
 import type { UserRepository } from "@application/interfaces/user-repository.js";
 import type { SessionRepository } from "@application/interfaces/session-repository.js";
 import type { PasswordHasher } from "@application/interfaces/password-hasher.js";
+import type { Logger } from "@application/interfaces/logger.js";
 import type { User } from "@application/models/user.js";
 import crypto from "crypto";
 import { InvalidCredentialsError } from "@application/errors/auth-errors.js";
@@ -40,11 +41,17 @@ export const buildLoginUser = (
   userRepository: UserRepository,
   sessionRepository: SessionRepository,
   passwordHasher: PasswordHasher,
+  logger: Logger,
 ) => {
   return async (input: LoginUserInput): Promise<LoginUserOutput> => {
+    logger.info("Login attempt started", { email: input.email });
+
     const user = await userRepository.findByEmail(input.email);
 
     if (!user) {
+      logger.warn("Login attempt failed: user not found", {
+        email: input.email,
+      });
       throw new InvalidCredentialsError();
     }
 
@@ -54,6 +61,9 @@ export const buildLoginUser = (
     );
 
     if (!isPasswordValid) {
+      logger.warn("Login attempt failed: invalid password", {
+        userId: user.id,
+      });
       throw new InvalidCredentialsError();
     }
 
@@ -66,8 +76,10 @@ export const buildLoginUser = (
     await sessionRepository.create({
       tokenHash: sessionTokenHash,
       userId: user.id,
-      expiresAt: new Date(Date.now() + SESSION_DURATION_MS), // 1 day expiration
+      expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
     });
+
+    logger.info("Login succeeded", { userId: user.id });
 
     return {
       sessionToken,
