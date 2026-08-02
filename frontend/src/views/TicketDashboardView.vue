@@ -1,3 +1,3 @@
 <template>
-  <RouterView />
+  <h1>Tickets</h1>
 </template>
