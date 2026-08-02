@@ -95,9 +95,9 @@ import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 Current auth DTO module (`shared/src/dto/auth.ts`) exports:
 
 - `LoginRequestSchema`
-- `LoginRequest`
+- `LoginRequestDto`
 - `LoginResponseSchema`
-- `LoginResponse`
+- `LoginResponseDto`
 
 ## Setup
 
@@ -170,7 +170,7 @@ Frontend example:
 ```ts
 import {
   LoginResponseSchema,
-  type LoginResponse,
+  type LoginResponseDto,
 } from "@ticket-system/shared/dto/auth";
 ```
 

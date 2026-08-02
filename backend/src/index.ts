@@ -4,6 +4,13 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { zValidator } from "@hono/zod-validator";
 import { setCookie } from "hono/cookie";
+import { cors } from "hono/cors";
+
+/* Config */
+import { env } from "@config/env.js";
+import { SESSION_MAX_AGE_SECONDS, SESSION_COOKIE_NAME } from "@config/auth.js";
+
+/* Zod Schemas */
 import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 
 /* Use Cases */
@@ -12,14 +19,21 @@ import { loginUser } from "@infrastructure/composition.js";
 /* Mappers */
 import { toLoginUserResponseDto } from "@infrastructure/mappers/user-mapper.js";
 
-/* Config */
-import { SESSION_MAX_AGE_SECONDS, SESSION_COOKIE_NAME } from "@config/auth.js";
-import { env } from "@config/env.js";
+/* Errors */
+import { InvalidCredentialsError } from "@application/errors/auth-errors.js";
 
 const app = new Hono();
 
 app.use(logger());
 app.use(secureHeaders());
+
+app.use(
+  "/api/*",
+  cors({
+    origin: env.FRONTEND_URL,
+    credentials: true,
+  }),
+);
 
 app.post(
   "/api/auth/login",
@@ -39,6 +53,25 @@ app.post(
   },
 );
 
+app.onError((err, c) => {
+  if (err instanceof InvalidCredentialsError) {
+    return c.json(
+      {
+        message: "Invalid email or password.",
+      },
+      401,
+    );
+  }
+
+  console.error(err);
+
+  return c.json(
+    {
+      message: "Internal server error.",
+    },
+    500,
+  );
+});
 // to do
 // 404
 // error handling middleware
