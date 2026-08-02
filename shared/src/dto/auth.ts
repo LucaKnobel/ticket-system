@@ -11,7 +11,7 @@ export const LoginRequestSchema = z.object({
 /**
  * Inferred login request type.
  */
-export type LoginRequest = z.infer<typeof LoginRequestSchema>;
+export type LoginRequestDto = z.infer<typeof LoginRequestSchema>;
 
 /**
  * Login response payload shared between frontend and backend.
@@ -26,4 +26,4 @@ export const LoginResponseSchema = z.object({
 /**
  * Inferred login response type.
  */
-export type LoginResponse = z.infer<typeof LoginResponseSchema>;
+export type LoginResponseDto = z.infer<typeof LoginResponseSchema>;

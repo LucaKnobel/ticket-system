@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
+
 import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
+
+import { login } from "@/api/auth";
+
+const router = useRouter();
 
 const email = ref("");
 const password = ref("");
+
 const emailError = ref("");
 const passwordError = ref("");
+const loginError = ref("");
 
-const onSubmit = () => {
+const onSubmit = async () => {
   emailError.value = "";
   passwordError.value = "";
+  loginError.value = "";
 
   const result = LoginRequestSchema.safeParse({
     email: email.value,
@@ -30,6 +39,13 @@ const onSubmit = () => {
     return;
   }
 
+  try {
+    await login(result.data);
+
+    await router.push("/tickets");
+  } catch {
+    loginError.value = "Invalid email or password.";
+  }
 };
 </script>
 
@@ -58,6 +74,8 @@ const onSubmit = () => {
 
       <p v-if="passwordError" class="error">{{ passwordError }}</p>
     </div>
+
+    <p v-if="loginError" class="error">Invalid email or password.</p>
 
     <button type="submit">
       Sign in
