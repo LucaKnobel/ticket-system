@@ -1,5 +1,8 @@
 import { prisma } from "@infrastructure/db/prisma.js";
-import type { SessionRepository } from "@application/interfaces/session-repository.js";
+import type {
+  CreateSessionInput,
+  SessionRepository,
+} from "@application/interfaces/session-repository.js";
 import type { Session } from "@application/models/session.js";
 import type { Prisma } from "@generated/prisma/client.js";
 
@@ -14,12 +17,12 @@ const toDomainSession = (row: PrismaSession): Session => ({
 });
 
 export const prismaSessionRepository: SessionRepository = {
-  async create(session: Session): Promise<Session> {
+  async create(input: CreateSessionInput): Promise<Session> {
     const row = await prisma.session.create({
       data: {
-        tokenHash: session.tokenHash,
-        userId: session.userId,
-        expiresAt: session.expiresAt,
+        tokenHash: input.tokenHash,
+        userId: input.userId,
+        expiresAt: input.expiresAt,
       },
     });
 
