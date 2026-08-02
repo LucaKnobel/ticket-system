@@ -1,14 +1,35 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 
 const email = ref("");
 const password = ref("");
+const emailError = ref("");
+const passwordError = ref("");
 
 const onSubmit = () => {
-  console.log({
+  emailError.value = "";
+  passwordError.value = "";
+
+  const result = LoginRequestSchema.safeParse({
     email: email.value,
     password: password.value,
   });
+
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      if (issue.path[0] === "email" && !emailError.value) {
+        emailError.value = issue.message;
+      }
+
+      if (issue.path[0] === "password" && !passwordError.value) {
+        passwordError.value = issue.message;
+      }
+    }
+
+    return;
+  }
+
 };
 </script>
 
@@ -25,6 +46,8 @@ const onSubmit = () => {
 
       <input id="email" v-model="email" name="email" type="email" autocomplete="email" placeholder="Enter your email"
         required />
+
+      <p v-if="emailError" class="error">{{ emailError }}</p>
     </div>
 
     <div class="field">
@@ -32,6 +55,8 @@ const onSubmit = () => {
 
       <input id="password" v-model="password" name="password" type="password" autocomplete="current-password"
         placeholder="Enter your password" required />
+
+      <p v-if="passwordError" class="error">{{ passwordError }}</p>
     </div>
 
     <button type="submit">
@@ -80,6 +105,12 @@ const onSubmit = () => {
 .field label {
   margin-bottom: 0.5rem;
   font-weight: 500;
+}
+
+.error {
+  margin-top: 0.5rem;
+  color: #c62828;
+  font-size: 0.875rem;
 }
 
 button {
