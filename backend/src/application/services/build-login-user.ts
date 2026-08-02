@@ -5,7 +5,7 @@ import type { Logger } from "@application/interfaces/logger.js";
 import type { User } from "@application/models/user.js";
 import crypto from "crypto";
 import { InvalidCredentialsError } from "@application/errors/auth-errors.js";
-
+import { SESSION_DURATION_MS } from "@config/auth.js";
 /**
  * Input for the login use case.
  */
@@ -27,11 +27,6 @@ type LoginUserOutput = {
   /** Authenticated user that matched the supplied credentials. */
   user: User;
 };
-
-/**
- * Session lifetime in milliseconds.
- */
-const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Builds a login use case that authenticates a user, creates a session,

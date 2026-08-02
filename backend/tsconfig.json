@@ -16,6 +16,7 @@
       "@application/*": ["./src/application/*"],
       "@infrastructure/*": ["./src/infrastructure/*"],
       "@generated/*": ["./generated/*"],
+      "@config/*": ["./src/config/*"],
       "@src/*": ["./src/*"]
     }
   },
