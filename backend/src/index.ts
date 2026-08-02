@@ -4,7 +4,6 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { zValidator } from "@hono/zod-validator";
 import { setCookie } from "hono/cookie";
-import { cors } from "hono/cors";
 
 /* Config */
 import { env } from "@config/env.js";
@@ -26,14 +25,6 @@ const app = new Hono();
 
 app.use(logger());
 app.use(secureHeaders());
-
-app.use(
-  "/api/*",
-  cors({
-    origin: env.FRONTEND_URL,
-    credentials: true,
-  }),
-);
 
 app.post(
   "/api/auth/login",
