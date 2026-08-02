@@ -1,5 +1,6 @@
 {
-  "name": "backend",
+  "name": "@ticket-system/backend",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -11,6 +12,7 @@
     "@hono/zod-validator": "^0.9.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@ticket-system/shared": "0.1.0",
     "argon2": "^0.45.1",
     "dotenv": "^17.4.2",
     "hono": "^4.12.33",

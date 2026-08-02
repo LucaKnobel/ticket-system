@@ -4,12 +4,10 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { zValidator } from "@hono/zod-validator";
 import { setCookie } from "hono/cookie";
+import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 
 /* Use Cases */
 import { loginUser } from "@infrastructure/composition.js";
-
-/* Zod Schemas */
-import { LoginUserBodySchema } from "@infrastructure/validation/user-schemas.js";
 
 /* Mappers */
 import { toLoginUserResponseDto } from "@infrastructure/mappers/user-mapper.js";
@@ -25,7 +23,7 @@ app.use(secureHeaders());
 
 app.post(
   "/api/auth/login",
-  zValidator("json", LoginUserBodySchema),
+  zValidator("json", LoginRequestSchema),
   async (c) => {
     const data = c.req.valid("json");
     const result = await loginUser(data);
