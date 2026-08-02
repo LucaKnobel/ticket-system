@@ -4,11 +4,9 @@ services:
   db:
     image: postgres:18.3
     restart: unless-stopped
-   
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    env_file:
+      - ./backend/.env
+
     volumes:
       - db_data:/var/lib/postgresql
     ports:
@@ -22,6 +20,8 @@ services:
   workspace:
     image: mcr.microsoft.com/devcontainers/javascript-node:24-bookworm
     working_dir: /workspace
+    env_file:
+      - ./backend/.env
     command: sleep infinity
     userns_mode: keep-id
     pids_limit: 8192
@@ -33,9 +33,6 @@ services:
     volumes:
       - .:/workspace:Z
 
-    environment:
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
-      LOG_LEVEL: ${LOG_LEVEL}
     depends_on:
       db:
         condition: service_healthy
