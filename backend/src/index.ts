@@ -1,10 +1,12 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
 
 const app = new Hono();
 
 app.use(logger());
+app.use(secureHeaders());
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
