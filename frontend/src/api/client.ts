@@ -1,7 +1,7 @@
-const API_BASE_URL = 'http://localhost:3000'
+import { env } from '@/config/env'
 
 export const apiClient = async (path: string, init?: RequestInit): Promise<Response> => {
-  return fetch(`${API_BASE_URL}${path}`, {
+  return fetch(`${env.apiBaseUrl}${path}`, {
     credentials: 'include',
     ...init,
   })
