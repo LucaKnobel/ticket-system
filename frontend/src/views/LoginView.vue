@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import AppLogo from "@/components/AppLogo.vue";
+import LoginForm from "@/components/LoginForm.vue";
+</script>
+
 <template>
-  <h1>Login</h1>
+  <main class="login-page">
+    <AppLogo />
+
+    <LoginForm />
+  </main>
 </template>
