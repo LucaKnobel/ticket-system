@@ -1,7 +1,7 @@
 import type { User } from "@application/models/user.js";
 import {
   LoginResponseSchema,
-  type LoginResponse as LoginUserResponseDto,
+  type LoginResponseDto as LoginUserResponseDto,
 } from "@ticket-system/shared/dto/auth";
 
 export const toLoginUserResponseDto = (user: User): LoginUserResponseDto => {
