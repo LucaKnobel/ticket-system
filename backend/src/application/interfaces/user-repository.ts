@@ -1,4 +1,4 @@
-import type { User } from "../models/user.js";
+import type { User } from "@application/models/user.js";
 
 export interface UserRepository {
   findByEmail(email: string): Promise<User | null>;

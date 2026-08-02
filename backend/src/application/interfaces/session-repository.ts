@@ -1,4 +1,4 @@
-import type { Session } from "../models/session.js";
+import type { Session } from "@application/models/session.js";
 
 export interface SessionRepository {
   create(session: Session): Promise<Session>;
