@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { useRouter } from "vue-router";
+
 import AppLogo from "@/components/AppLogo.vue";
 import LoginForm from "@/components/LoginForm.vue";
+
+const router = useRouter();
+
+const onLoginSuccess = () => {
+  void router.push("/tickets");
+};
 </script>
 
 <template>
   <main class="login-page">
     <AppLogo size="lg" />
-    <LoginForm />
+    <LoginForm @success="onLoginSuccess" />
   </main>
 </template>
 
