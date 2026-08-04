@@ -5,6 +5,9 @@ import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 
 import { login } from "@/api/auth";
 
+/**
+ * Emitted after a successful login request.
+ */
 const emit = defineEmits<{
   success: [];
 }>();
@@ -16,6 +19,10 @@ const emailError = ref("");
 const passwordError = ref("");
 const loginError = ref("");
 
+/**
+ * Validates form input and triggers the login API call.
+ * Emits `success` when authentication succeeds.
+ */
 const onSubmit = async () => {
   emailError.value = "";
   passwordError.value = "";

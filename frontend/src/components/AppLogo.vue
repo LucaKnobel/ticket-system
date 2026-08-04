@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Controls the visual size variant of the logo.
+ */
 withDefaults(
   defineProps<{
     size?: "sm" | "md" | "lg";
