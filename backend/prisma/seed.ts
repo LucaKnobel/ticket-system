@@ -3,7 +3,7 @@ import "dotenv/config";
 import argon2 from "argon2";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../generated/prisma/client.js";
+import { PrismaClient, Prisma } from "../generated/prisma/client.js";
 
 /**
  * ===============================================================
@@ -44,7 +44,7 @@ async function main() {
   const adminPasswordHash = await argon2.hash(ADMIN_PASSWORD);
   const userPasswordHash = await argon2.hash(USER_PASSWORD);
 
-  const users = [
+  const users: Prisma.UserCreateInput[] = [
     {
       name: "Administrator",
       email: "admin@example.com",
