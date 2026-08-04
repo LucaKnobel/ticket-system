@@ -2,6 +2,13 @@ import type { LoginRequestDto, LoginResponseDto } from '@ticket-system/shared/dt
 
 import { apiClient } from '@/api/client'
 
+/**
+ * Authenticates a user against the backend login endpoint.
+ *
+ * @param dto Login payload containing email and password.
+ * @returns Authenticated user DTO returned by the API.
+ * @throws Error when the backend responds with a non-success status code.
+ */
 export const login = async (dto: LoginRequestDto): Promise<LoginResponseDto> => {
   const response = await apiClient('/api/auth/login', {
     method: 'POST',
