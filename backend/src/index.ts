@@ -63,9 +63,6 @@ app.onError((err, c) => {
     500,
   );
 });
-// to do
-// 404
-// error handling middleware
 
 serve(
   {

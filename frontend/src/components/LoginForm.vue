@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRouter } from "vue-router";
 
 import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 
 import { login } from "@/api/auth";
 
-const router = useRouter();
+const emit = defineEmits<{
+  success: [];
+}>();
 
 const email = ref("");
 const password = ref("");
@@ -41,8 +42,7 @@ const onSubmit = async () => {
 
   try {
     await login(result.data);
-
-    await router.push("/tickets");
+    emit("success");
   } catch {
     loginError.value = "Invalid email or password.";
   }
