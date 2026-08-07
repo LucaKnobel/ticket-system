@@ -1,0 +1,41 @@
+{
+  "name": "ticket-system",
+  "dockerComposeFile": ["../compose.yml"],
+  "service": "workspace",
+  "forwardPorts": [5173, 3000],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "openBrowser"
+    },
+    "3000": {
+      "label": "Backend API"
+    }
+  },
+  "runServices": ["db", "workspace"],
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "postCreateCommand": "if [ -f package.json ]; then npm install; fi",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "prisma.prisma",
+        "bradlc.vscode-tailwindcss",
+        "bruno-api-client.bruno",
+        "snyk-security.snyk-vulnerability-scanner",
+        "aquasecurityofficial.trivy-vulnerability-scanner",
+        "vitest.explorer",
+        "EditorConfig.EditorConfig",
+        "oxc.oxc-vscode"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "eslint.validate": ["javascript", "typescript", "vue"],
+        "js/ts.preferences.includePackageJsonAutoImports": "on"
+      }
+    }
+  }
+}

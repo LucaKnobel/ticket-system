@@ -1,0 +1,43 @@
+name: ticket-system
+
+services:
+  db:
+    image: postgres:18.3
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+
+    volumes:
+      - db_data:/var/lib/postgresql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  workspace:
+    image: mcr.microsoft.com/devcontainers/javascript-node:24-bookworm
+    working_dir: /workspace
+    env_file:
+      - ./backend/.env
+    command: sleep infinity
+    userns_mode: keep-id
+    pids_limit: 8192
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 524288
+        hard: 524288
+    volumes:
+      - .:/workspace:Z
+
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  db_data:
