@@ -26,6 +26,10 @@ const app = new Hono();
 app.use(logger());
 app.use(secureHeaders());
 
+app.get("/health", (c) => {
+  return c.json({ status: "ok" }, 200);
+});
+
 app.post(
   "/api/auth/login",
   zValidator("json", LoginRequestSchema),
