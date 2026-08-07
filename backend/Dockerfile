@@ -13,6 +13,11 @@ RUN apt-get update \
 
 FROM base AS build
 
+# Dummy database URL used only for Prisma client generation during the build.
+ARG DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres
+ENV DATABASE_URL=${DATABASE_URL}
+
+
 # Copy workspace manifests first to maximize Docker layer caching.
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package.json
