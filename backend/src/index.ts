@@ -30,23 +30,19 @@ app.get("/health", (c) => {
   return c.json({ status: "ok" }, 200);
 });
 
-app.post(
-  "/api/auth/login",
-  zValidator("json", LoginRequestSchema),
-  async (c) => {
-    const data = c.req.valid("json");
-    const result = await loginUser(data);
-    setCookie(c, SESSION_COOKIE_NAME, result.sessionToken, {
-      httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "Strict",
-      path: "/",
-      maxAge: SESSION_MAX_AGE_SECONDS,
-    });
+app.post("/auth/login", zValidator("json", LoginRequestSchema), async (c) => {
+  const data = c.req.valid("json");
+  const result = await loginUser(data);
+  setCookie(c, SESSION_COOKIE_NAME, result.sessionToken, {
+    httpOnly: true,
+    secure: env.NODE_ENV === "production",
+    sameSite: "Strict",
+    path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  });
 
-    return c.json({ user: toLoginUserResponseDto(result.user) }, 200);
-  },
-);
+  return c.json({ user: toLoginUserResponseDto(result.user) }, 200);
+});
 
 app.onError((err, c) => {
   if (err instanceof InvalidCredentialsError) {
