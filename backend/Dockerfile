@@ -1,63 +1,74 @@
 FROM node:24-bookworm-slim AS base
+
 WORKDIR /app
 
-FROM base AS deps-build
+# Install system dependencies required by Prisma.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssl \
+ && rm -rf /var/lib/apt/lists/*
 
-# Copy only workspace manifests first for better layer caching.
+################################################################################
+# Build
+################################################################################
+
+FROM base AS build
+
+# Copy workspace manifests first to maximize Docker layer caching.
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package.json
 COPY shared/package.json shared/package.json
 
-# Install only the workspaces required by the backend build.
-RUN npm ci --workspace @ticket-system/backend --workspace @ticket-system/shared --include-workspace-root=false
+# Install all workspace dependencies, including development dependencies.
+RUN npm ci
 
-
-FROM deps-build AS build
-
+# Copy application source code.
 COPY backend backend
 COPY shared shared
 
-# Build shared first, then generate Prisma client and compile backend.
+# Build the shared package first, then generate the Prisma client and build
+# the backend application.
 RUN npm run build -w @ticket-system/shared \
-    && npm exec -w @ticket-system/backend prisma generate \
-    && npm run build -w @ticket-system/backend
+ && npm exec -w @ticket-system/backend prisma generate \
+ && npm run build -w @ticket-system/backend
 
+# Remove development dependencies to prepare the runtime image.
+RUN npm prune --omit=dev
 
-FROM base AS deps-prod
+################################################################################
+# Runtime
+################################################################################
 
-COPY package.json package-lock.json ./
-COPY backend/package.json backend/package.json
-COPY shared/package.json shared/package.json
-
-# Install production dependencies only for backend + shared workspaces.
-RUN npm ci --omit=dev \
-    --workspace @ticket-system/backend \
-    --workspace @ticket-system/shared \
-    --include-workspace-root=false
-
-    
 FROM base AS runner
 
 ENV NODE_ENV=production
+
 WORKDIR /app
 
-# Keep workspace metadata so npm exec -w works at runtime.
-COPY --from=deps-prod /app/package.json /app/package-lock.json ./
-COPY --from=deps-prod /app/backend/package.json ./backend/package.json
-COPY --from=deps-prod /app/shared/package.json ./shared/package.json
-COPY --from=deps-prod /app/node_modules ./node_modules
+# Copy workspace metadata.
+COPY --from=build /app/package.json ./
+COPY --from=build /app/package-lock.json ./
+COPY --from=build /app/backend/package.json ./backend/package.json
+COPY --from=build /app/shared/package.json ./shared/package.json
 
-# Runtime artifacts.
+# Copy production dependencies.
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/backend/node_modules ./backend/node_modules
+
+# Copy compiled application.
 COPY --from=build /app/backend/dist ./backend/dist
 COPY --from=build /app/shared/dist ./shared/dist
+
+# Copy Prisma schema, migrations and generated client.
 COPY --from=build /app/backend/prisma ./backend/prisma
 COPY --from=build /app/backend/prisma.config.ts ./backend/prisma.config.ts
+COPY --from=build /app/backend/generated ./backend/generated
 
 USER node
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD node -e "fetch('http://127.0.0.1:3000/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"
+CMD node -e "fetch('http://127.0.0.1:3000/health').then(res => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"
 
-# Apply pending migrations before starting the Hono server.
+# Apply pending database migrations before starting the application.
 CMD ["sh", "-c", "npm exec -w @ticket-system/backend prisma migrate deploy && exec node backend/dist/src/index.js"]
