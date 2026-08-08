@@ -32,7 +32,7 @@ jobs:
     # PostgreSQL service for backend integration tests
     services:
       postgres:
-        image: postgres:18.3
+        image: postgres:18
         env:
           POSTGRES_DB: testDb
           POSTGRES_USER: tester
@@ -176,10 +176,10 @@ jobs:
       - name: Run Trivy scan (filesystem)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          scanners: 'vuln,secret,misconfig'
-          severity: 'CRITICAL'
+          scan-type: "fs"
+          scan-ref: "."
+          scanners: "vuln,secret,misconfig"
+          severity: "CRITICAL"
           ignore-unfixed: true
-          exit-code: '1'
-          format: 'table'
+          exit-code: "1"
+          format: "table"
