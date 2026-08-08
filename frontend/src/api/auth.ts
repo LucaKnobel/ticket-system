@@ -19,7 +19,7 @@ export const login = async (dto: LoginRequestDto): Promise<LoginResponseDto> => 
   })
 
   if (!response.ok) {
-    throw new Error('Login failed!')
+    throw new Error('Login failed.')
   }
 
   return response.json() as Promise<LoginResponseDto>

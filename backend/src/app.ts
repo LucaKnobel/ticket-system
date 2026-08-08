@@ -40,7 +40,7 @@ app.use("*", async (c, next) => {
 });
 
 app.get("/health", (c) => {
-  appLogger.debug("Health check requested", {
+  appLogger.debug("Health check requested.", {
     method: c.req.method,
     path: c.req.path,
   });
