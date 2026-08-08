@@ -4,7 +4,7 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
 import { env } from "@config/env.js";
 import { SESSION_MAX_AGE_SECONDS, SESSION_COOKIE_NAME } from "@config/auth.js";
-import { logger as appLogger } from "@infrastructure/logging/logger.js";
+import { logger } from "@infrastructure/logging/logger.js";
 import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 import { loginUser, logoutUser } from "@infrastructure/composition.js";
 import { toLoginUserResponseDto } from "@infrastructure/mappers/user-mapper.js";
@@ -13,7 +13,7 @@ import { InvalidCredentialsError } from "@application/errors/auth-errors.js";
 export const authRoutes = new Hono();
 
 authRoutes.post("/login", zValidator("json", LoginRequestSchema), async (c) => {
-  appLogger.info("Login attempt received", {
+  logger.info("Login attempt received", {
     method: c.req.method,
     path: c.req.path,
   });
@@ -29,7 +29,7 @@ authRoutes.post("/login", zValidator("json", LoginRequestSchema), async (c) => {
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
 
-  appLogger.info("Login succeeded", {
+  logger.info("Login succeeded", {
     userId: result.user.id,
     path: c.req.path,
   });
@@ -53,7 +53,7 @@ authRoutes.post("/logout", async (c) => {
 
 authRoutes.onError((err, c) => {
   if (err instanceof InvalidCredentialsError) {
-    appLogger.warn("Login failed due to invalid credentials", {
+    logger.warn("Login failed due to invalid credentials", {
       method: c.req.method,
       path: c.req.path,
     });
@@ -66,7 +66,7 @@ authRoutes.onError((err, c) => {
     );
   }
 
-  appLogger.error(
+  logger.error(
     "Unhandled application error",
     {
       method: c.req.method,
