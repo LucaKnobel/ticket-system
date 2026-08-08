@@ -1,0 +1,185 @@
+name: Pull Request CI Checks
+
+# Trigger: Run quality checks, security scans, and tests on PRs to main or dev
+# Ensures code meets standards before merging
+on:
+  pull_request:
+    branches:
+      - "main"
+      - "dev"
+
+# Cancel outdated runs on the same PR branch to save CI minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Give read access to repository contents for jobs
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend - Build, Tests, Prisma
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Skip for Dependabot: dependency PRs are handled separately.
+    if: github.actor != 'dependabot[bot]'
+
+    env:
+      DATABASE_URL: postgresql://tester:test@localhost:5432/testDb
+
+    # PostgreSQL service for backend integration tests
+    services:
+      postgres:
+        image: postgres:18.3
+        env:
+          POSTGRES_DB: testDb
+          POSTGRES_USER: tester
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Clone repository at PR commit
+      - uses: actions/checkout@v7
+
+      # Install Node.js 24 + npm cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      # Install dependencies from lock file (reproducible install)
+      - run: npm ci
+
+      # shared is a dependency for frontend and backend builds/types.
+      - name: Build shared package
+        run: npm run build -w @ticket-system/shared
+
+      # Prisma setup must run before backend integration tests.
+      - name: Prisma setup
+        run: |
+          npm exec -w @ticket-system/backend prisma migrate reset --force
+          npm exec -w @ticket-system/backend prisma generate
+
+      # Backend build already performs TypeScript checks (`tsc`) and emit.
+      - name: Backend build
+        run: npm run build -w @ticket-system/backend
+
+      - name: Backend unit tests
+        run: npm run test:unit -w @ticket-system/backend
+
+      - name: Backend integration tests
+        run: npm run test:integration -w @ticket-system/backend
+
+  frontend:
+    name: Frontend - Lint, Typecheck, Test, Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Skip for Dependabot: dependency PRs are handled separately.
+    if: github.actor != 'dependabot[bot]'
+
+    env:
+      # Protect against memory spikes during frontend build/typecheck.
+      NODE_OPTIONS: --max-old-space-size=6144
+
+    steps:
+      # Clone repository at PR commit
+      - uses: actions/checkout@v7
+
+      # Install Node.js 24 + npm cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      # Install dependencies from lock file (ensures reproducible builds)
+      - run: npm ci
+
+      # shared is a dependency for frontend and backend builds/types.
+      - name: Build shared package
+        run: npm run build -w @ticket-system/shared
+
+      - name: Frontend lint
+        run: npm run lint -w @ticket-system/frontend
+
+      - name: Frontend typecheck
+        run: npm run type-check -w @ticket-system/frontend
+
+      - name: Frontend unit tests
+        run: npm run test:unit -w @ticket-system/frontend -- --run
+
+      - name: Frontend build
+        run: npm run build -w @ticket-system/frontend
+
+  dependency-audit:
+    name: Security - npm audit (critical, prod only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Skip for Dependabot: dependency PRs are handled separately.
+    if: github.actor != 'dependabot[bot]'
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Audit only production dependencies and fail on critical findings.
+      - name: npm audit
+        run: npm audit --omit=dev --audit-level=critical
+
+  semgrep:
+    name: Security - Semgrep (OSS auto config)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Skip for Dependabot: dependency PRs are handled separately.
+    if: github.actor != 'dependabot[bot]'
+
+    steps:
+      # Clone code for static analysis
+      - uses: actions/checkout@v7
+
+      # Run local open-source Semgrep scan with automatic rules.
+      - name: Install Semgrep
+        run: python3 -m pip install --upgrade semgrep
+
+      - name: Run Semgrep (auto config)
+        run: semgrep scan --config auto .
+
+  trivy:
+    name: Security - Trivy filesystem scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Skip for Dependabot: dependency PRs are handled separately.
+    if: github.actor != 'dependabot[bot]'
+
+    steps:
+      # Clone repository for comprehensive security scan
+      - uses: actions/checkout@v7
+
+      # Use official Trivy action for maintained setup + built-in cache handling.
+      - name: Run Trivy scan (filesystem)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          scanners: 'vuln,secret,misconfig'
+          severity: 'CRITICAL'
+          ignore-unfixed: true
+          exit-code: '1'
+          format: 'table'
