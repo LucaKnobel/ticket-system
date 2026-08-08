@@ -11,6 +11,7 @@ const toDomainUser = (row: PrismaUser): User => ({
   email: row.email,
   passwordHash: row.passwordHash,
   role: row.role,
+  deletedAt: row.deletedAt,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });
