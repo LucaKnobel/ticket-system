@@ -302,7 +302,7 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail-with-body --silent --show-error \
-            --request GET \
+            --request POST \
             --header "Authorization: Bearer ${COOLIFY_AUTH_TOKEN}" \
             "${COOLIFY_BACKEND_WEBHOOK}"
 
@@ -314,6 +314,6 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail-with-body --silent --show-error \
-            --request GET \
+            --request POST \
             --header "Authorization: Bearer ${COOLIFY_AUTH_TOKEN}" \
             "${COOLIFY_FRONTEND_WEBHOOK}"
