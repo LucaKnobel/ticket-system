@@ -4,6 +4,7 @@ import { buildLoginUser } from "@application/services/build-login-user.js";
 import type { Logger } from "@application/interfaces/logger.js";
 import type { PasswordHasher } from "@application/interfaces/password-hasher.js";
 import type { SessionRepository } from "@application/interfaces/session-repository.js";
+import type { SessionTokenHasher } from "@application/interfaces/session-token-hasher.js";
 import type { UserRepository } from "@application/interfaces/user-repository.js";
 import type { Session } from "@application/models/session.js";
 import type { User } from "@application/models/user.js";
@@ -77,11 +78,18 @@ describe("buildLoginUser", () => {
         >(),
     };
 
+    const sessionTokenHasher: SessionTokenHasher = {
+      hash: vi.fn<(sessionToken: string) => string>(
+        (sessionToken) => sessionToken,
+      ),
+    };
+
     const loginUser = buildLoginUser(
       userRepository,
       sessionRepository,
       passwordHasher,
       logger,
+      sessionTokenHasher,
     );
 
     const result = await loginUser({
