@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { secureHeaders } from "hono/secure-headers";
 import { zValidator } from "@hono/zod-validator";
-import { setCookie } from "hono/cookie";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
 /* Config */
 import { env } from "@config/env.js";
@@ -14,7 +14,7 @@ import { logger as appLogger } from "@infrastructure/logging/logger.js";
 import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 
 /* Use Cases */
-import { loginUser } from "@infrastructure/composition.js";
+import { loginUser, logoutUser } from "@infrastructure/composition.js";
 
 /* Mappers */
 import { toLoginUserResponseDto } from "@infrastructure/mappers/user-mapper.js";
@@ -71,6 +71,20 @@ app.post("/auth/login", zValidator("json", LoginRequestSchema), async (c) => {
   });
 
   return c.json({ user: toLoginUserResponseDto(result.user) }, 200);
+});
+
+app.post("/auth/logout", async (c) => {
+  const sessionToken = getCookie(c, SESSION_COOKIE_NAME);
+
+  await logoutUser({ sessionToken });
+
+  deleteCookie(c, SESSION_COOKIE_NAME, {
+    path: "/",
+    secure: env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+
+  return c.body(null, 204);
 });
 
 app.onError((err, c) => {
