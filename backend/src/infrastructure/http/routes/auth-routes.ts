@@ -8,7 +8,6 @@ import { logger } from "@infrastructure/logging/logger.js";
 import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
 import { loginUser, logoutUser } from "@infrastructure/composition.js";
 import { toLoginUserResponseDto } from "@infrastructure/mappers/user-mapper.js";
-import { InvalidCredentialsError } from "@application/errors/auth-errors.js";
 
 export const authRoutes = new Hono();
 
@@ -49,36 +48,4 @@ authRoutes.post("/logout", async (c) => {
   });
 
   return c.body(null, 204);
-});
-
-authRoutes.onError((err, c) => {
-  if (err instanceof InvalidCredentialsError) {
-    logger.warn("Login failed due to invalid credentials", {
-      method: c.req.method,
-      path: c.req.path,
-    });
-
-    return c.json(
-      {
-        message: "Invalid email or password.",
-      },
-      401,
-    );
-  }
-
-  logger.error(
-    "Unhandled application error",
-    {
-      method: c.req.method,
-      path: c.req.path,
-    },
-    err,
-  );
-
-  return c.json(
-    {
-      message: "Internal server error.",
-    },
-    500,
-  );
 });

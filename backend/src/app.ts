@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { secureHeaders } from "hono/secure-headers";
 
 /* Logging */
-import { logger as appLogger } from "@infrastructure/logging/logger.js";
+import { logger } from "@infrastructure/logging/logger.js";
+import { errorHandler } from "@infrastructure/http/error-handler.js";
 import { authRoutes } from "@infrastructure/http/routes/auth-routes.js";
 
 export const app = new Hono();
@@ -14,7 +15,7 @@ app.use("*", async (c, next) => {
 
   await next();
 
-  appLogger.info("HTTP request completed", {
+  logger.info("HTTP request completed", {
     method: c.req.method,
     path: c.req.path,
     status: c.res.status,
@@ -23,7 +24,7 @@ app.use("*", async (c, next) => {
 });
 
 app.get("/health", (c) => {
-  appLogger.debug("Health check requested.", {
+  logger.debug("Health check requested.", {
     method: c.req.method,
     path: c.req.path,
   });
@@ -32,3 +33,5 @@ app.get("/health", (c) => {
 });
 
 app.route("/auth", authRoutes);
+
+app.onError(errorHandler);
