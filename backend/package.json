@@ -31,7 +31,7 @@
     "@types/pg": "^8.20.3",
     "tsc-alias": "^1.9.1",
     "tsx": "^4.23.0",
-    "typescript": "^7.0.2",
+    "typescript": "~6.0.3",
     "vitest": "^4.1.10"
   }
 }
