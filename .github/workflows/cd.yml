@@ -1,13 +1,10 @@
 name: CD Deploy
 
 # Deployment only:
-# Run after CI workflow completes on main, then publish images and trigger Coolify.
+# Run directly on push to main after PR CI and branch protection have already
+# validated the merge, then publish images and trigger Coolify.
 on:
-  workflow_run:
-    workflows:
-      - "Pull Request CI Checks"
-    types:
-      - completed
+  push:
     branches:
       - main
 
@@ -29,31 +26,23 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
 
     steps:
-      # Check out the exact commit that CI validated.
+      # Check out the pushed merge commit from main.
       # fetch-depth: 2 is sufficient because change detection compares
-      # the validated commit to the previous commit on main.
-      - name: Checkout validated commit
+      # the merge commit to its previous commit on main.
+      - name: Checkout pushed commit
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 2
 
       # Detect which service images require rebuild using the official
       # path-filter action.
-      #
-      # Why this base/ref configuration is correct:
-      # - This workflow only runs for successful CI on main.
-      # - For non-push events (workflow_run), dorny/paths-filter v4 supports
-      #   long-lived branch detection by setting `base` to the branch name.
-      # - With `base: main` and `ref` set to the validated commit SHA,
-      #   changes are evaluated against the previous commit on main,
-      #   matching the intended deployment behavior.
       - name: Detect changed paths
         id: filter
         uses: dorny/paths-filter@v4.0.3
         with:
-          base: main
-          ref: ${{ github.event.workflow_run.head_sha }}
+          base: ${{ github.event.before }}
+          ref: ${{ github.sha }}
           filters: |
             backend:
               - 'backend/**'
@@ -81,13 +70,13 @@ jobs:
 
     env:
       BACKEND_IMAGE: ghcr.io/lucaknobel/ticket-system-backend
-      IMAGE_TAG_SHA: ${{ github.event.workflow_run.head_sha }}
+      IMAGE_TAG_SHA: ${{ github.sha }}
 
     steps:
-      - name: Checkout validated commit
+      - name: Checkout pushed commit
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -151,13 +140,13 @@ jobs:
 
     env:
       FRONTEND_IMAGE: ghcr.io/lucaknobel/ticket-system-frontend
-      IMAGE_TAG_SHA: ${{ github.event.workflow_run.head_sha }}
+      IMAGE_TAG_SHA: ${{ github.sha }}
 
     steps:
-      - name: Checkout validated commit
+      - name: Checkout pushed commit
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -218,7 +207,7 @@ jobs:
       - frontend-image
 
     if: >-
-      ${{ always() && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' &&
+      ${{ always() && github.ref == 'refs/heads/main' &&
       (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true') &&
       (needs.backend-image.result == 'success' || needs.backend-image.result == 'skipped') &&
       (needs.frontend-image.result == 'success' || needs.frontend-image.result == 'skipped') }}
