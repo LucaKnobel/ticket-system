@@ -98,6 +98,7 @@ jobs:
           context: .
           file: ./backend/Dockerfile
           platforms: linux/amd64
+          pull: true
           load: true
           push: false
           cache-from: type=gha
@@ -203,6 +204,7 @@ jobs:
           context: .
           file: ./frontend/Dockerfile
           platforms: linux/amd64
+          pull: true
           load: true
           push: false
           cache-from: type=gha
@@ -277,7 +279,7 @@ jobs:
       - frontend-image
 
     if: >-
-      ${{ always() && github.ref == 'refs/heads/main' &&
+      ${{
       (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true') &&
       (needs.backend-image.result == 'success' || needs.backend-image.result == 'skipped') &&
       (needs.frontend-image.result == 'success' || needs.frontend-image.result == 'skipped') }}
@@ -292,13 +294,26 @@ jobs:
           echo "Backend changed: ${{ needs.changes.outputs.backend }}"
           echo "Frontend changed: ${{ needs.changes.outputs.frontend }}"
 
-      - name: Trigger Coolify deploy webhook
+      - name: Trigger Coolify backend deploy webhook
+        if: needs.changes.outputs.backend == 'true'
         env:
-          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
-          DEPLOY_KEY_TICKET_SYSTEM: ${{ secrets.DEPLOY_KEY_TICKET_SYSTEM }}
+          COOLIFY_BACKEND_WEBHOOK: ${{ secrets.COOLIFY_BACKEND_WEBHOOK }}
+          COOLIFY_AUTH_TOKEN: ${{ secrets.COOLIFY_AUTH_TOKEN }}
         run: |
           set -euo pipefail
           curl --fail-with-body --silent --show-error \
             --request GET \
-            --header "Authorization: Bearer ${DEPLOY_KEY_TICKET_SYSTEM}" \
-            "${COOLIFY_WEBHOOK_URL}"
+            --header "Authorization: Bearer ${COOLIFY_AUTH_TOKEN}" \
+            "${COOLIFY_BACKEND_WEBHOOK}"
+
+      - name: Trigger Coolify frontend deploy webhook
+        if: needs.changes.outputs.frontend == 'true'
+        env:
+          COOLIFY_FRONTEND_WEBHOOK: ${{ secrets.COOLIFY_FRONTEND_WEBHOOK }}
+          COOLIFY_AUTH_TOKEN: ${{ secrets.COOLIFY_AUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            --request GET \
+            --header "Authorization: Bearer ${COOLIFY_AUTH_TOKEN}" \
+            "${COOLIFY_FRONTEND_WEBHOOK}"
