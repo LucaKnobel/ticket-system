@@ -115,8 +115,20 @@ jobs:
       - name: Frontend typecheck
         run: npm run type-check -w @ticket-system/frontend
 
-      - name: Frontend unit tests
-        run: npm run test:unit -w @ticket-system/frontend -- --run
+      - name: Debug Vitest environment
+        working-directory: frontend
+        run: |
+          node -v
+          npm -v
+          pwd
+
+          npm ls jsdom
+          npm ls vitest
+
+          node -e "console.log(require.resolve('jsdom/package.json'))"
+
+      - name: Frontend tests
+        run: npm test -w @ticket-system/frontend
 
       - name: Frontend build
         run: npm run build -w @ticket-system/frontend
