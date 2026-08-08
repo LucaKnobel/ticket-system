@@ -267,35 +267,32 @@ jobs:
           docker push "${FRONTEND_IMAGE}:${IMAGE_TAG_SHA}"
           docker push "${FRONTEND_IMAGE}:latest"
 
-  deploy-production:
-    name: Deploy to Coolify (Production)
+  backend-deploy:
+    name: Deploy Backend to Coolify (Production)
     runs-on: ubuntu-latest
     environment: production
 
-    # Deploy only after at least one image job succeeded and none failed.
+    # Deploy backend only when backend changes were built successfully.
     needs:
       - changes
       - backend-image
-      - frontend-image
 
     if: >-
       ${{
-      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true') &&
-      (needs.backend-image.result == 'success' || needs.backend-image.result == 'skipped') &&
-      (needs.frontend-image.result == 'success' || needs.frontend-image.result == 'skipped') }}
+      needs.changes.outputs.backend == 'true' &&
+      needs.backend-image.result == 'success' }}
 
     permissions:
       contents: read
 
     steps:
-      - name: Deployment summary
+      - name: Backend deployment summary
         run: |
           echo "Deployment environment: production"
           echo "Backend changed: ${{ needs.changes.outputs.backend }}"
           echo "Frontend changed: ${{ needs.changes.outputs.frontend }}"
 
       - name: Trigger Coolify backend deploy webhook
-        if: needs.changes.outputs.backend == 'true'
         env:
           COOLIFY_BACKEND_WEBHOOK: ${{ secrets.COOLIFY_BACKEND_WEBHOOK }}
           COOLIFY_AUTH_TOKEN: ${{ secrets.COOLIFY_AUTH_TOKEN }}
@@ -306,8 +303,34 @@ jobs:
             --header "Authorization: Bearer ${COOLIFY_AUTH_TOKEN}" \
             "${COOLIFY_BACKEND_WEBHOOK}"
 
+  frontend-deploy:
+    name: Deploy Frontend to Coolify (Production)
+    runs-on: ubuntu-latest
+    environment: production
+
+    # Frontend deploy waits for frontend image and backend deploy ordering.
+    needs:
+      - changes
+      - frontend-image
+      - backend-deploy
+
+    if: >-
+      ${{
+      needs.changes.outputs.frontend == 'true' &&
+      needs.frontend-image.result == 'success' &&
+      (needs.backend-deploy.result == 'success' || needs.backend-deploy.result == 'skipped') }}
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Frontend deployment summary
+        run: |
+          echo "Deployment environment: production"
+          echo "Backend changed: ${{ needs.changes.outputs.backend }}"
+          echo "Frontend changed: ${{ needs.changes.outputs.frontend }}"
+
       - name: Trigger Coolify frontend deploy webhook
-        if: needs.changes.outputs.frontend == 'true'
         env:
           COOLIFY_FRONTEND_WEBHOOK: ${{ secrets.COOLIFY_FRONTEND_WEBHOOK }}
           COOLIFY_AUTH_TOKEN: ${{ secrets.COOLIFY_AUTH_TOKEN }}
