@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "node --env-file=.env --watch --import tsx src/index.ts",
     "build": "tsc && tsc-alias",
-    "start": "node dist/index.js"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.12",
@@ -26,6 +31,7 @@
     "@types/pg": "^8.20.3",
     "tsc-alias": "^1.9.1",
     "tsx": "^4.23.0",
-    "typescript": "^7.0.2"
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.10"
   }
 }

@@ -1,0 +1,245 @@
+name: CD Deploy
+
+# Deployment only:
+# Run after CI workflow completes on main, then publish images and trigger Coolify.
+on:
+  workflow_run:
+    workflows:
+      - "Pull Request CI Checks"
+    types:
+      - completed
+    branches:
+      - main
+
+# Ensure only one production deployment runs at a time.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    name: Detect changed image targets
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+
+    steps:
+      # Check out the exact commit that CI validated.
+      # fetch-depth: 2 is sufficient because change detection compares
+      # the validated commit to the previous commit on main.
+      - name: Checkout validated commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 2
+
+      # Detect which service images require rebuild using the official
+      # path-filter action.
+      #
+      # Why this base/ref configuration is correct:
+      # - This workflow only runs for successful CI on main.
+      # - For non-push events (workflow_run), dorny/paths-filter v4 supports
+      #   long-lived branch detection by setting `base` to the branch name.
+      # - With `base: main` and `ref` set to the validated commit SHA,
+      #   changes are evaluated against the previous commit on main,
+      #   matching the intended deployment behavior.
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v4.0.3
+        with:
+          base: main
+          ref: ${{ github.event.workflow_run.head_sha }}
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'shared/**'
+              - 'package.json'
+              - 'package-lock.json'
+            frontend:
+              - 'frontend/**'
+              - 'shared/**'
+              - 'package.json'
+              - 'package-lock.json'
+
+  backend-image:
+    name: Backend image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    needs: changes
+
+    if: needs.changes.outputs.backend == 'true'
+
+    permissions:
+      contents: read
+      packages: write
+
+    env:
+      BACKEND_IMAGE: ghcr.io/lucaknobel/ticket-system-backend
+      IMAGE_TAG_SHA: ${{ github.event.workflow_run.head_sha }}
+
+    steps:
+      - name: Checkout validated commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build the image exactly once and load it into the local Docker daemon
+      # so Trivy can scan the same artifact before we push it.
+      # load:true is intentional because we scan the exact local image first.
+      # This workflow currently builds linux/amd64 only.
+      - name: Build backend image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./backend/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}
+
+      # Fail before pushing if critical vulnerabilities are present.
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        timeout-minutes: 10
+        with:
+          scan-type: "image"
+          image-ref: "${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}"
+          format: "table"
+          severity: "CRITICAL"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          exit-code: "1"
+
+      # Push the exact already-built image once the scan passed.
+      - name: Push backend image
+        run: |
+          docker push "${BACKEND_IMAGE}:${IMAGE_TAG_SHA}"
+          docker push "${BACKEND_IMAGE}:latest"
+
+  frontend-image:
+    name: Frontend image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    needs: changes
+
+    if: needs.changes.outputs.frontend == 'true'
+
+    permissions:
+      contents: read
+      packages: write
+
+    env:
+      FRONTEND_IMAGE: ghcr.io/lucaknobel/ticket-system-frontend
+      IMAGE_TAG_SHA: ${{ github.event.workflow_run.head_sha }}
+
+    steps:
+      - name: Checkout validated commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build the image exactly once and load it into the local Docker daemon
+      # so Trivy can scan the same artifact before we push it.
+      # load:true is intentional because we scan the exact local image first.
+      # This workflow currently builds linux/amd64 only.
+      - name: Build frontend image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./frontend/Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}
+
+      # Fail before pushing if critical vulnerabilities are present.
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        timeout-minutes: 10
+        with:
+          scan-type: "image"
+          image-ref: "${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}"
+          format: "table"
+          severity: "CRITICAL"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          exit-code: "1"
+
+      # Push the exact already-built image once the scan passed.
+      - name: Push frontend image
+        run: |
+          docker push "${FRONTEND_IMAGE}:${IMAGE_TAG_SHA}"
+          docker push "${FRONTEND_IMAGE}:latest"
+
+  deploy-production:
+    name: Deploy to Coolify (Production)
+    runs-on: ubuntu-latest
+    environment: production
+
+    # Deploy only after at least one image job succeeded and none failed.
+    needs:
+      - changes
+      - backend-image
+      - frontend-image
+
+    if: >-
+      ${{ always() && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' &&
+      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true') &&
+      (needs.backend-image.result == 'success' || needs.backend-image.result == 'skipped') &&
+      (needs.frontend-image.result == 'success' || needs.frontend-image.result == 'skipped') }}
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "Deployment environment: production"
+          echo "Backend changed: ${{ needs.changes.outputs.backend }}"
+          echo "Frontend changed: ${{ needs.changes.outputs.frontend }}"
+
+      - name: Trigger Coolify deploy webhook
+        env:
+          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+          DEPLOY_KEY_TICKET_SYSTEM: ${{ secrets.DEPLOY_KEY_TICKET_SYSTEM }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            --request GET \
+            --header "Authorization: Bearer ${DEPLOY_KEY_TICKET_SYSTEM}" \
+            "${COOLIFY_WEBHOOK_URL}"
