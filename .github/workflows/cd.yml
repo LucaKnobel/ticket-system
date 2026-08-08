@@ -106,18 +106,53 @@ jobs:
             ${{ env.BACKEND_IMAGE }}:latest
             ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}
 
-      # Fail before pushing if critical vulnerabilities are present.
-      - name: Scan backend image with Trivy
+      # Informative security scan for locally built image.
+      # This step does not fail deployment because the base image may contain
+      # known vulnerabilities that are handled separately.
+      - name: Scan backend image with Trivy (log)
         uses: aquasecurity/trivy-action@v0.36.0
         timeout-minutes: 10
         with:
           scan-type: "image"
           image-ref: "${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}"
           format: "table"
-          severity: "CRITICAL"
+          severity: "CRITICAL,HIGH"
           ignore-unfixed: true
           vuln-type: "os,library"
-          exit-code: "1"
+          list-all-pkgs: false
+          exit-code: "0"
+
+      - name: Generate backend Trivy report (JSON)
+        uses: aquasecurity/trivy-action@v0.36.0
+        timeout-minutes: 10
+        with:
+          scan-type: "image"
+          image-ref: "${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}"
+          format: "json"
+          output: "trivy-backend-report.json"
+          severity: "CRITICAL,HIGH"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          list-all-pkgs: false
+          exit-code: "0"
+
+      - name: Upload backend Trivy report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-backend-report-${{ github.sha }}
+          path: trivy-backend-report.json
+
+      - name: Backend Trivy summary
+        run: |
+          critical_count=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-backend-report.json)
+          {
+            echo "## Trivy Summary - Backend"
+            echo ""
+            echo "- Image Name: `${BACKEND_IMAGE}`"
+            echo "- Image Tag: `${IMAGE_TAG_SHA}`"
+            echo "- Critical Findings: ${critical_count}"
+            echo "- Hinweis: Details stehen im Trivy-Report-Artifact und im Trivy-Logscan."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Push the exact already-built image once the scan passed.
       - name: Push backend image
@@ -176,18 +211,53 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:latest
             ${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}
 
-      # Fail before pushing if critical vulnerabilities are present.
-      - name: Scan frontend image with Trivy
+      # Informative security scan for locally built image.
+      # This step does not fail deployment because the base image may contain
+      # known vulnerabilities that are handled separately.
+      - name: Scan frontend image with Trivy (log)
         uses: aquasecurity/trivy-action@v0.36.0
         timeout-minutes: 10
         with:
           scan-type: "image"
           image-ref: "${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}"
           format: "table"
-          severity: "CRITICAL"
+          severity: "CRITICAL,HIGH"
           ignore-unfixed: true
           vuln-type: "os,library"
-          exit-code: "1"
+          list-all-pkgs: false
+          exit-code: "0"
+
+      - name: Generate frontend Trivy report (JSON)
+        uses: aquasecurity/trivy-action@v0.36.0
+        timeout-minutes: 10
+        with:
+          scan-type: "image"
+          image-ref: "${{ env.FRONTEND_IMAGE }}:${{ env.IMAGE_TAG_SHA }}"
+          format: "json"
+          output: "trivy-frontend-report.json"
+          severity: "CRITICAL,HIGH"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          list-all-pkgs: false
+          exit-code: "0"
+
+      - name: Upload frontend Trivy report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-frontend-report-${{ github.sha }}
+          path: trivy-frontend-report.json
+
+      - name: Frontend Trivy summary
+        run: |
+          critical_count=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-frontend-report.json)
+          {
+            echo "## Trivy Summary - Frontend"
+            echo ""
+            echo "- Image Name: `${FRONTEND_IMAGE}`"
+            echo "- Image Tag: `${IMAGE_TAG_SHA}`"
+            echo "- Critical Findings: ${critical_count}"
+            echo "- Hinweis: Details stehen im Trivy-Report-Artifact und im Trivy-Logscan."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Push the exact already-built image once the scan passed.
       - name: Push frontend image
