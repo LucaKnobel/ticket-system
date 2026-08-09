@@ -51,12 +51,6 @@ const toDomainTicketWithUsers = (
 });
 
 export const prismaTicketRepository: TicketRepository = {
-  async findAll(): Promise<Ticket[]> {
-    const rows = await prisma.ticket.findMany();
-
-    return rows.map(toDomainTicket);
-  },
-
   async findAllWithUsers(): Promise<TicketWithUsers[]> {
     const rows = await prisma.ticket.findMany({
       include: {
