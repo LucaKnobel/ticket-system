@@ -29,6 +29,7 @@ describe("buildLoginUser", () => {
       findById: vi
         .fn<(id: string) => Promise<User | null>>()
         .mockResolvedValue(null),
+      findAllActive: vi.fn<() => Promise<User[]>>().mockResolvedValue([user]),
     };
 
     const sessionRepository: SessionRepository = {
