@@ -32,3 +32,11 @@ export type Ticket = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+/**
+ * Read model used for ticket listing responses that need user details.
+ */
+export type TicketWithUsers = Ticket & {
+  createdByName: string;
+  assignedToName: string | null;
+};

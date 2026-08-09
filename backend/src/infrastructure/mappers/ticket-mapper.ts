@@ -2,7 +2,6 @@ import type { Ticket } from "@application/models/ticket.js";
 import {
   TicketResponseSchema,
   type TicketResponseDto,
-  type TicketUserSummaryDto,
 } from "@ticket-system/shared";
 
 /**
@@ -10,8 +9,8 @@ import {
  */
 export const toTicketResponseDto = (
   ticket: Ticket,
-  createdByUser: TicketUserSummaryDto,
-  assignedToUser?: TicketUserSummaryDto | null,
+  createdByName: string,
+  assignedToName?: string | null,
 ): TicketResponseDto => {
   return TicketResponseSchema.parse({
     id: ticket.id,
@@ -19,18 +18,11 @@ export const toTicketResponseDto = (
     description: ticket.description,
     status: ticket.status,
     priority: ticket.priority,
-    createdBy: {
-      id: ticket.createdById,
-      name: createdByUser.name,
-    },
-    assignedTo:
-      ticket.assignedToId && assignedToUser
-        ? {
-            id: assignedToUser.id,
-            name: assignedToUser.name,
-          }
-        : null,
-    createdAt: ticket.createdAt,
-    updatedAt: ticket.updatedAt,
+    createdById: ticket.createdById,
+    createdByName,
+    assignedToId: ticket.assignedToId ?? null,
+    assignedToName: assignedToName ?? null,
+    createdAt: ticket.createdAt.toISOString(),
+    updatedAt: ticket.updatedAt.toISOString(),
   });
 };
