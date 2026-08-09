@@ -3,8 +3,12 @@ import { zValidator } from "@hono/zod-validator";
 
 import { requireAuth } from "@infrastructure/http/middleware/auth-middleware.js";
 import type { AppEnv } from "@infrastructure/http/types.js";
-import { createTicket, listTickets } from "@infrastructure/composition.js";
-import { CreateTicketRequestSchema } from "@ticket-system/shared";
+import { createTicket, listTickets, updateTicket } from "@infrastructure/composition.js";
+import {
+  CreateTicketRequestSchema,
+  UpdateTicketParamSchema,
+  UpdateTicketRequestSchema,
+} from "@ticket-system/shared";
 import { toTicketResponseDto } from "@infrastructure/mappers/ticket-mapper.js";
 
 /**
@@ -42,5 +46,26 @@ ticketRoutes.post(
       }),
       201,
     );
+  },
+);
+
+ticketRoutes.put(
+  "/:id",
+  zValidator("param", UpdateTicketParamSchema),
+  zValidator("json", UpdateTicketRequestSchema),
+  async (c) => {
+    const user = c.var.user;
+    const { id } = c.req.valid("param");
+    const data = c.req.valid("json");
+
+    const ticket = await updateTicket(id, {
+      title: data.title,
+      description: data.description,
+      status: data.status,
+      priority: data.priority,
+      assignedToId: data.assignedToId,
+    }, user);
+
+    return c.json(toTicketResponseDto(ticket), 200);
   },
 );

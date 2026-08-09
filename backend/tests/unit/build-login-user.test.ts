@@ -17,6 +17,7 @@ describe("buildLoginUser", () => {
       email: "alice@example.com",
       passwordHash: "hashed-password",
       role: "USER",
+      deletedAt: null,
       createdAt: new Date("2026-01-01T00:00:00.000Z"),
       updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     };
