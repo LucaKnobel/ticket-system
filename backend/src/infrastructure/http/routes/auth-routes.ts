@@ -5,7 +5,7 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { env } from "@config/env.js";
 import { SESSION_MAX_AGE_SECONDS, SESSION_COOKIE_NAME } from "@config/auth.js";
 import { logger } from "@infrastructure/logging/logger.js";
-import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
+import { LoginRequestSchema } from "@ticket-system/shared";
 import { loginUser, logoutUser } from "@infrastructure/composition.js";
 import { toLoginUserResponseDto } from "@infrastructure/mappers/user-mapper.js";
 
@@ -37,6 +37,11 @@ authRoutes.post("/login", zValidator("json", LoginRequestSchema), async (c) => {
 });
 
 authRoutes.post("/logout", async (c) => {
+  logger.info("Logout attempt received", {
+    method: c.req.method,
+    path: c.req.path,
+  });
+
   const sessionToken = getCookie(c, SESSION_COOKIE_NAME);
 
   await logoutUser({ sessionToken });
@@ -45,6 +50,10 @@ authRoutes.post("/logout", async (c) => {
     path: "/",
     secure: env.NODE_ENV === "production",
     sameSite: "Strict",
+  });
+
+  logger.info("Logout succeeded", {
+    path: c.req.path,
   });
 
   return c.body(null, 204);
