@@ -5,6 +5,7 @@ import { buildLoginUser } from "@application/services/build-login-user.js";
 import { buildLogoutUser } from "@application/services/build-logout-user.js";
 import { buildAuthenticateSession } from "@application/services/build-authenticate-session.js";
 import { buildCreateTicket } from "@application/services/build-create-ticket.js";
+import { buildGetTicket } from "@application/services/build-get-ticket.js";
 import { buildListTickets } from "@application/services/build-list-tickets.js";
 import { buildUpdateTicket } from "@application/services/build-update-ticket.js";
 
@@ -35,5 +36,6 @@ export const authenticateSession = buildAuthenticateSession(
 );
 
 export const createTicket = buildCreateTicket(prismaTicketRepository, logger);
+export const getTicket = buildGetTicket(prismaTicketRepository, logger);
 export const listTickets = buildListTickets(prismaTicketRepository, logger);
 export const updateTicket = buildUpdateTicket(prismaTicketRepository, logger);
