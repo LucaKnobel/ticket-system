@@ -173,11 +173,12 @@ const submit = () => {
         </div>
         <div>
           <span class="label">Status</span>
-          <p>{{ props.ticket.status }}</p>
+          <p><span class="status-badge" :data-status="props.ticket.status">{{ props.ticket.status.replace(/_/g, ' ')
+              }}</span></p>
         </div>
         <div>
           <span class="label">Priority</span>
-          <p>{{ props.ticket.priority }}</p>
+          <p><span class="priority-badge" :data-priority="props.ticket.priority">{{ props.ticket.priority }}</span></p>
         </div>
         <div>
           <span class="label">Created by</span>
@@ -317,6 +318,48 @@ const submit = () => {
 .error {
   color: var(--color-danger);
   font-size: 0.875rem;
+}
+
+.status-badge,
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.status-badge[data-status='OPEN'] {
+  background: rgba(100, 116, 139, 0.16);
+  color: #475569;
+}
+
+.status-badge[data-status='IN_PROGRESS'] {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+}
+
+.status-badge[data-status='CLOSED'] {
+  background: rgba(34, 197, 94, 0.18);
+  color: #15803d;
+}
+
+.priority-badge[data-priority='LOW'] {
+  background: rgba(34, 197, 94, 0.16);
+  color: #15803d;
+}
+
+.priority-badge[data-priority='MEDIUM'] {
+  background: rgba(59, 130, 246, 0.16);
+  color: #1d4ed8;
+}
+
+.priority-badge[data-priority='HIGH'] {
+  background: rgba(239, 68, 68, 0.16);
+  color: #b91c1c;
 }
 
 .actions {
