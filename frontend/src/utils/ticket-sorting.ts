@@ -4,6 +4,14 @@ export type TicketSortKey =
   'createdAt' | 'title' | 'status' | 'priority' | 'createdBy' | 'assignedTo'
 export type TicketSortDirection = 'asc' | 'desc'
 
+/**
+ * Sorts tickets by the selected column and direction.
+ *
+ * @param items Tickets to sort.
+ * @param key Column used for sorting.
+ * @param direction Sort direction, either ascending or descending.
+ * @returns A new array of tickets sorted according to the provided options.
+ */
 export const sortTickets = (
   items: TicketResponseDto[],
   key: TicketSortKey,
