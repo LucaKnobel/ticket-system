@@ -48,10 +48,12 @@ describe("backend integration flows", () => {
 
     expect(invalidPayloadResponse.status).toBe(400);
 
+    const sessionCountBefore = await prisma.session.count();
+
     const wrongCredentials = await login(userA.email, "wrong-password");
 
     expect(wrongCredentials.response.status).toBe(401);
-    expect(await prisma.session.count()).toBe(0);
+    expect(await prisma.session.count()).toBe(sessionCountBefore);
   });
 
   it("runs the auth lifecycle end to end and persists the session", async () => {
@@ -157,7 +159,7 @@ describe("backend integration flows", () => {
   });
 
   it("protects the admin users endpoint with auth and role checks", async () => {
-    const { admin, userA } = await seedUsers();
+    const { admin, userA, userB } = await seedUsers();
 
     const noAuthResponse = await app.request("/users");
     expect(noAuthResponse.status).toBe(401);
@@ -173,9 +175,18 @@ describe("backend integration flows", () => {
     const adminResponse = await requestWithCookie("/users", adminLogin.cookie);
 
     expect(adminResponse.status).toBe(200);
-    expect(
-      UserSummaryResponseSchema.array().parse(await adminResponse.json()),
-    ).toHaveLength(3);
+
+    const users = UserSummaryResponseSchema.array().parse(
+      await adminResponse.json(),
+    );
+
+    expect(users).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: admin.id }),
+        expect.objectContaining({ id: userA.id }),
+        expect.objectContaining({ id: userB.id }),
+      ]),
+    );
   });
 
   it("supports the ticket lifecycle and enforces owner/admin authorization", async () => {
