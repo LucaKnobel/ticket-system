@@ -11,6 +11,21 @@ This repository contains a small ticket management application as a learning and
 - A simple API structure built with Hono and Prisma
 - A Vue frontend written in TypeScript
 
+## Demo access
+
+You can try the deployed demo here:
+
+- Live demo: https://ticket-system.lucaknobel.ch/
+
+Example demo accounts:
+
+- Admin: admin@example.com / Admin!Ticket2026#
+- User: alice@example.com / TicketSystem!2026#
+- User: bob@example.com / TicketSystem!2026#
+- User: charlie@example.com / TicketSystem!2026#
+
+After logging in, you can explore the dashboard, create tickets, and use the logout button to end the session.
+
 ## Tech stack
 
 ### Monorepo
