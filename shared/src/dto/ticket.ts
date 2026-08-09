@@ -15,14 +15,6 @@ export const CreateTicketRequestSchema = z.object({
 export type CreateTicketRequestDto = z.infer<typeof CreateTicketRequestSchema>;
 
 /**
- * Compact user summary used inside ticket responses.
- */
-export type TicketUserSummaryDto = {
-  id: string;
-  name: string;
-};
-
-/**
  * Ticket response payload shared between the frontend and backend.
  */
 export const TicketResponseSchema = z.object({
@@ -31,19 +23,10 @@ export const TicketResponseSchema = z.object({
   description: z.string(),
   status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
-
-  createdBy: z.object({
-    id: z.uuid(),
-    name: z.string(),
-  }),
-
-  assignedTo: z
-    .object({
-      id: z.uuid(),
-      name: z.string(),
-    })
-    .nullable(),
-
+  createdById: z.uuid(),
+  createdByName: z.string(),
+  assignedToId: z.uuid().nullable(),
+  assignedToName: z.string().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

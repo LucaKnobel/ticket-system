@@ -8,10 +8,27 @@ import type {
   Ticket,
   TicketPriority,
   TicketStatus,
+  TicketWithUsers,
 } from "@application/models/ticket.js";
 import type { Prisma } from "@generated/prisma/client.js";
 
 type PrismaTicket = Prisma.TicketGetPayload<{}>;
+type PrismaTicketWithUsers = Prisma.TicketGetPayload<{
+  include: {
+    createdBy: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+    assignedTo: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+  };
+}>;
 
 const toDomainTicket = (row: PrismaTicket): Ticket => ({
   id: row.id,
@@ -25,11 +42,40 @@ const toDomainTicket = (row: PrismaTicket): Ticket => ({
   updatedAt: row.updatedAt,
 });
 
+const toDomainTicketWithUsers = (
+  row: PrismaTicketWithUsers,
+): TicketWithUsers => ({
+  ...toDomainTicket(row),
+  createdByName: row.createdBy.name,
+  assignedToName: row.assignedTo?.name ?? null,
+});
+
 export const prismaTicketRepository: TicketRepository = {
   async findAll(): Promise<Ticket[]> {
     const rows = await prisma.ticket.findMany();
 
     return rows.map(toDomainTicket);
+  },
+
+  async findAllWithUsers(): Promise<TicketWithUsers[]> {
+    const rows = await prisma.ticket.findMany({
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return rows.map(toDomainTicketWithUsers);
   },
 
   async findById(id: string): Promise<Ticket | null> {

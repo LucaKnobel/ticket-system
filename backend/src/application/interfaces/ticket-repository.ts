@@ -2,6 +2,7 @@ import type {
   Ticket,
   TicketPriority,
   TicketStatus,
+  TicketWithUsers,
 } from "@application/models/ticket.js";
 
 export type CreateTicketInput = {
@@ -21,6 +22,7 @@ export type UpdateTicketInput = {
 
 export interface TicketRepository {
   findAll(): Promise<Ticket[]>;
+  findAllWithUsers(): Promise<TicketWithUsers[]>;
   findById(id: string): Promise<Ticket | null>;
   create(data: CreateTicketInput): Promise<Ticket>;
   update(id: string, data: UpdateTicketInput): Promise<Ticket>;
