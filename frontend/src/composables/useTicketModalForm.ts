@@ -76,7 +76,6 @@ export const useTicketModalForm = ({
         title: form.value.title,
         description: form.value.description,
         priority: form.value.priority,
-        status: 'OPEN',
       })
 
       if (!result.success) {
@@ -125,7 +124,6 @@ export const useTicketModalForm = ({
         title: form.value.title.trim(),
         description: form.value.description.trim(),
         priority: form.value.priority,
-        status: 'OPEN',
       }
     }
 
