@@ -148,8 +148,10 @@ onMounted(() => {
 
       <div class="topbar-meta">
         <div v-if="currentUser" class="user-meta">
-          <span>{{ currentUser.name }}</span>
-          <span class="role-pill">{{ currentUser.role }}</span>
+          <div class="user-info-stack">
+            <span>User: {{ currentUser.name }}</span>
+            <span>Role: {{ currentUser.role === 'ADMIN' ? 'Admin' : 'User' }}</span>
+          </div>
         </div>
         <button type="button" class="ghost-button" @click="signOut">Logout</button>
       </div>
@@ -201,16 +203,20 @@ onMounted(() => {
 .user-meta {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   font-weight: 600;
+  color: var(--color-text);
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.65rem;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-.role-pill {
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  background: var(--color-background);
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
+.user-info-stack {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  line-height: 1.3;
 }
 
 .ghost-button {
@@ -256,11 +262,37 @@ onMounted(() => {
     padding: 1rem;
   }
 
-  .topbar,
-  .content-header,
+  .topbar {
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+
   .topbar-meta {
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .user-meta {
+    display: none;
+  }
+
+  .ghost-button {
+    align-self: flex-end;
+    width: auto;
+  }
+
+  .content-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  :deep(.app-logo) {
+    transform: scale(0.9);
+    transform-origin: left center;
   }
 }
 </style>

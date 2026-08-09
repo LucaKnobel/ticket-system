@@ -52,11 +52,13 @@ const onSubmit = async () => {
 
   try {
     const response = await login(result.data)
+    const responseUser = (response as { user?: typeof response }).user ?? response
+
     setUser({
-      id: response.id,
-      name: response.name,
-      email: response.email,
-      role: response.role,
+      id: responseUser.id,
+      name: responseUser.name,
+      email: responseUser.email,
+      role: responseUser.role,
     })
     emit('success')
   } catch {
