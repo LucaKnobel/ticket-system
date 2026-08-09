@@ -126,7 +126,6 @@ export const useTicketDashboard = () => {
         title: payload.title.trim(),
         description: payload.description.trim(),
         priority: payload.priority,
-        status: payload.status,
       }
 
       await createTicket(nextPayload)

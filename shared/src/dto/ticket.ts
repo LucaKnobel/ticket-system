@@ -1,16 +1,11 @@
 import * as z from "zod";
 
-const TicketCommonFieldsSchema = z.object({
-  title: z.string().min(1).max(255),
-  description: z.string().min(1).max(5000),
-  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
-});
-
 /**
  * Ticket creation request payload shared between the frontend and backend.
  */
-export const CreateTicketRequestSchema = TicketCommonFieldsSchema.extend({
+export const CreateTicketRequestSchema = z.object({
+  title: z.string().min(1).max(255),
+  description: z.string().min(1).max(5000),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("LOW"),
 });
 
@@ -55,7 +50,11 @@ export type TicketResponseDto = z.infer<typeof TicketResponseSchema>;
 /**
  * Ticket update request payload shared between the frontend and backend.
  */
-export const UpdateTicketRequestSchema = TicketCommonFieldsSchema.extend({
+export const UpdateTicketRequestSchema = z.object({
+  title: z.string().min(1).max(255),
+  description: z.string().min(1).max(5000),
+  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   assignedToId: z.uuid().nullable(),
 });
 

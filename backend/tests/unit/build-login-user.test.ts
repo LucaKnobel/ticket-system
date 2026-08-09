@@ -1,96 +1,40 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { buildLoginUser } from "@application/services/build-login-user.js";
-import type { Logger } from "@application/interfaces/logger.js";
-import type { PasswordHasher } from "@application/interfaces/password-hasher.js";
-import type { SessionRepository } from "@application/interfaces/session-repository.js";
+import { InvalidCredentialsError } from "@application/errors/auth-errors.js";
 import type { SessionTokenHasher } from "@application/interfaces/session-token-hasher.js";
-import type { UserRepository } from "@application/interfaces/user-repository.js";
-import type { Session } from "@application/models/session.js";
-import type { User } from "@application/models/user.js";
+import { buildLoginUser } from "@application/services/build-login-user.js";
+import { SESSION_DURATION_MS } from "@config/auth.js";
+import {
+  createLogger,
+  createPasswordHasherMock,
+  createSessionRepositoryMock,
+  createUser,
+  createUserRepositoryMock,
+} from "./test-helpers.js";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("buildLoginUser", () => {
-  it("authenticates a user and creates a session", async () => {
-    const user: User = {
-      id: "user-1",
-      name: "Alice",
-      email: "alice@example.com",
-      passwordHash: "hashed-password",
-      role: "USER",
-      deletedAt: null,
-      createdAt: new Date("2026-01-01T00:00:00.000Z"),
-      updatedAt: new Date("2026-01-01T00:00:00.000Z"),
-    };
+  it("returns user, generates a session token, and creates a session with expected expiry", async () => {
+    const user = createUser();
+    const now = Date.parse("2026-01-01T12:00:00.000Z");
+    vi.spyOn(Date, "now").mockReturnValue(now);
 
-    const userRepository: UserRepository = {
-      findByEmail: vi
-        .fn<(email: string) => Promise<User | null>>()
-        .mockResolvedValue(user),
-      findById: vi
-        .fn<(id: string) => Promise<User | null>>()
-        .mockResolvedValue(null),
-      findAllActive: vi.fn<() => Promise<User[]>>().mockResolvedValue([user]),
-    };
-
-    const sessionRepository: SessionRepository = {
-      create: vi
-        .fn<
-          (input: {
-            tokenHash: string;
-            userId: string;
-            expiresAt: Date;
-          }) => Promise<Session>
-        >()
-        .mockImplementation(async (input) => ({
-          id: "session-1",
-          tokenHash: input.tokenHash,
-          userId: input.userId,
-          expiresAt: input.expiresAt,
-          createdAt: new Date("2026-01-01T00:00:00.000Z"),
-        })),
-      findByTokenHash: vi
-        .fn<(tokenHash: string) => Promise<Session | null>>()
-        .mockResolvedValue(null),
-      deleteByTokenHash: vi
-        .fn<(tokenHash: string) => Promise<void>>()
-        .mockResolvedValue(),
-    };
-
-    const passwordHasher: PasswordHasher = {
-      hash: vi
-        .fn<(password: string) => Promise<string>>()
-        .mockResolvedValue("unused"),
-      verify: vi
-        .fn<(password: string, passwordHash: string) => Promise<boolean>>()
-        .mockResolvedValue(true),
-    };
-
-    const logger: Logger = {
-      trace: vi.fn<(message: string, meta?: Record<string, unknown>) => void>(),
-      debug: vi.fn<(message: string, meta?: Record<string, unknown>) => void>(),
-      info: vi.fn<(message: string, meta?: Record<string, unknown>) => void>(),
-      warn: vi.fn<(message: string, meta?: Record<string, unknown>) => void>(),
-      error:
-        vi.fn<
-          (
-            message: string,
-            meta?: Record<string, unknown>,
-            err?: unknown,
-          ) => void
-        >(),
-    };
+    const userRepository = createUserRepositoryMock(user);
+    const sessionRepository = createSessionRepositoryMock();
+    const passwordHasher = createPasswordHasherMock(true);
 
     const sessionTokenHasher: SessionTokenHasher = {
-      hash: vi.fn<(sessionToken: string) => string>(
-        (sessionToken) => sessionToken,
-      ),
+      hash: vi.fn((sessionToken: string) => `hashed:${sessionToken}`),
     };
 
     const loginUser = buildLoginUser(
       userRepository,
       sessionRepository,
       passwordHasher,
-      logger,
+      createLogger(),
       sessionTokenHasher,
     );
 
@@ -105,11 +49,64 @@ describe("buildLoginUser", () => {
       "plain-password",
       user.passwordHash,
     );
-    expect(sessionRepository.create).toHaveBeenCalledTimes(1);
+    expect(sessionTokenHasher.hash).toHaveBeenCalledWith(result.sessionToken);
+    expect(sessionRepository.create).toHaveBeenCalledWith({
+      tokenHash: `hashed:${result.sessionToken}`,
+      userId: user.id,
+      expiresAt: new Date(now + SESSION_DURATION_MS),
+    });
+  });
 
-    const createInput = vi.mocked(sessionRepository.create).mock.calls[0][0];
-    expect(createInput.userId).toBe(user.id);
-    expect(createInput.tokenHash).toHaveLength(64);
-    expect(createInput.expiresAt).toBeInstanceOf(Date);
+  it("throws InvalidCredentialsError for unknown email and does not verify password", async () => {
+    const userRepository = createUserRepositoryMock(null);
+    const sessionRepository = createSessionRepositoryMock();
+    const passwordHasher = createPasswordHasherMock(true);
+
+    const loginUser = buildLoginUser(
+      userRepository,
+      sessionRepository,
+      passwordHasher,
+      createLogger(),
+      { hash: vi.fn((sessionToken: string) => `hashed:${sessionToken}`) },
+    );
+
+    await expect(
+      loginUser({
+        email: "missing@example.com",
+        password: "plain-password",
+      }),
+    ).rejects.toBeInstanceOf(InvalidCredentialsError);
+
+    expect(passwordHasher.verify).not.toHaveBeenCalled();
+    expect(sessionRepository.create).not.toHaveBeenCalled();
+  });
+
+  it("throws InvalidCredentialsError for wrong password and does not create session", async () => {
+    const user = createUser();
+
+    const userRepository = createUserRepositoryMock(user);
+    const sessionRepository = createSessionRepositoryMock();
+    const passwordHasher = createPasswordHasherMock(false);
+
+    const loginUser = buildLoginUser(
+      userRepository,
+      sessionRepository,
+      passwordHasher,
+      createLogger(),
+      { hash: vi.fn((sessionToken: string) => `hashed:${sessionToken}`) },
+    );
+
+    await expect(
+      loginUser({
+        email: user.email,
+        password: "wrong-password",
+      }),
+    ).rejects.toBeInstanceOf(InvalidCredentialsError);
+
+    expect(passwordHasher.verify).toHaveBeenCalledWith(
+      "wrong-password",
+      user.passwordHash,
+    );
+    expect(sessionRepository.create).not.toHaveBeenCalled();
   });
 });
