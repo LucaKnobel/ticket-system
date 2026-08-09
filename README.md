@@ -1,43 +1,61 @@
 # Ticket System Monorepo
 
-This repository is an npm workspace monorepo with three packages:
+This repository contains a small ticket management application as a learning and school project. The goal is to build and understand a complete full-stack workflow with a backend, database, authentication, and frontend. It is not intended for production use, but for practicing architecture, API design, database modeling, and frontend integration.
 
-- `@ticket-system/backend` - API server and business logic
-- `@ticket-system/frontend` - Vue single-page application
-- `@ticket-system/shared` - shared TypeScript library (DTO schemas and types)
+## What the app can do
 
-## Tech Stack
+- Login and session-based authentication
+- View and manage tickets
+- Create, view, edit, and delete tickets
+- Role-based access with admin and user accounts
+- A simple API structure built with Hono and Prisma
+- A Vue frontend written in TypeScript
+
+## Tech stack
 
 ### Monorepo
 
 - npm workspaces
-- one lockfile at root (`package-lock.json`)
-- ESM (`"type": "module"`) packages
+- one shared lockfile at the repository root
+- ESM packages
 
-### Backend (`backend/`)
+### Backend
 
-- Node.js + TypeScript (`NodeNext`)
-- Hono (`@hono/node-server`)
-- Prisma + PostgreSQL (`@prisma/client`, `@prisma/adapter-pg`)
+- Node.js + TypeScript
+- Hono as the API framework
+- Prisma + PostgreSQL
 - Zod validation
 - Argon2 password hashing
 - Pino logging
 
-### Frontend (`frontend/`)
+### Frontend
 
 - Vue 3 + Vite
 - Vue Router
-- TypeScript + `vue-tsc`
+- TypeScript + vue-tsc
 - Vitest + ESLint
 
-### Shared (`shared/`)
+### Shared
 
-- TypeScript library built to `dist/`
-- Zod-based shared DTO schemas
-- package `exports` for direct subpath imports like:
+- Shared TypeScript models and DTOs
+- Zod-based schemas
+- Workspace exports for subpath imports such as
   - `@ticket-system/shared/dto/auth`
 
-## Repository Layout
+## Project context
+
+This project is mainly a practice project for:
+
+- Clean-architecture-style structure
+- REST API development with Hono
+- Database access with Prisma
+- Secure form and API validation
+- Modern Vue frontend development
+- Testing backend and frontend behavior
+
+The focus is on learning and building a clear, well-structured example project rather than delivering a production-ready system.
+
+## Repository layout
 
 ```txt
 ticket-system/
@@ -67,121 +85,17 @@ ticket-system/
         └── dto/
 ```
 
-## How Workspaces Are Wired
+## Workspaces and local linking
 
-Root `package.json` defines:
+The root `package.json` defines:
 
 - `workspaces: ["backend", "frontend", "shared"]`
 
-Backend and frontend depend on shared via version `0.1.0`:
+Backend and frontend depend on `shared` via the local workspace version `0.1.0`, so the local package folder is linked directly.
 
-- `"@ticket-system/shared": "0.1.0"`
+## Notes
 
-Because the local workspace package has the same name and version, npm links it locally from `./shared` (instead of pulling from a registry).
-
-## Shared Package Contract
-
-`shared/package.json` exports:
-
-- `.` -> `./dist/index.js` + `./dist/index.d.ts`
-- `./dto/*` -> `./dist/dto/*.js` + `./dist/dto/*.d.ts`
-
-This allows imports such as:
-
-```ts
-import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
-```
-
-Current auth DTO module (`shared/src/dto/auth.ts`) exports:
-
-- `LoginRequestSchema`
-- `LoginRequestDto`
-- `LoginResponseSchema`
-- `LoginResponseDto`
-
-## Setup
-
-Requirements:
-
-- Node.js 24+ recommended
-- npm 10+
-
-Install all workspace dependencies from the root:
-
-```bash
-npm install
-```
-
-## Root Scripts
-
-Run these from the repository root:
-
-- `npm run clean`
-  - cleans `shared/dist`, `backend/dist`, `frontend/dist`
-- `npm run build`
-  - builds in order: shared -> backend -> frontend
-- `npm run type-check`
-  - builds shared and backend, then runs frontend type-check
-- `npm run dev:shared`
-  - starts shared TypeScript watch build
-- `npm run dev:backend`
-  - starts backend dev server (`tsx watch`)
-- `npm run dev:frontend`
-  - starts frontend dev server (`vite`)
-
-## Typical Development Flow
-
-1. Install dependencies once at root:
-
-```bash
-npm install
-```
-
-2. Start shared watch mode (if editing shared DTOs/types):
-
-```bash
-npm run dev:shared
-```
-
-3. In separate terminals, start backend and frontend:
-
-```bash
-npm run dev:backend
-npm run dev:frontend
-```
-
-4. Validate before pushing:
-
-```bash
-npm run build
-npm run type-check
-```
-
-## Using Shared DTOs in Backend and Frontend
-
-Backend example:
-
-```ts
-import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
-```
-
-Frontend example:
-
-```ts
-import {
-  LoginResponseSchema,
-  type LoginResponseDto,
-} from "@ticket-system/shared/dto/auth";
-```
-
-If you add a new DTO module (for example `shared/src/dto/ticket.ts`), it is automatically available as:
-
-- `@ticket-system/shared/dto/ticket`
-
-after rebuilding shared.
-
-## Important Notes
-
-- Use only npm workspaces for this repo.
+- Use only npm workspaces for this repository.
 - Do not add per-package `package-lock.json` files.
-- Keep shared package version aligned with backend/frontend dependency version for local linking.
+- Keep the shared package version aligned with the backend and frontend dependency versions for local linking.
+- This project is intended as a learning example and not as a fully production-ready solution.

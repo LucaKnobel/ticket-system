@@ -21,8 +21,8 @@ import { PrismaClient, Prisma } from "../generated/prisma/client.js";
  * - bob@example.com
  * - charlie@example.com
  *
- * The seed is idempotent and can safely be executed multiple times.
- * Existing seed users and tickets are updated instead of duplicated.
+ * This seed is idempotent and can be run multiple times safely.
+ * Existing seed users and tickets are updated instead of being duplicated.
  * ===============================================================
  */
 
