@@ -33,19 +33,19 @@ export const TicketResponseSchema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
 
   createdBy: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     name: z.string(),
   }),
 
   assignedTo: z
     .object({
-      id: z.string().uuid(),
+      id: z.uuid(),
       name: z.string(),
     })
     .nullable(),
 
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 });
 
 /**
