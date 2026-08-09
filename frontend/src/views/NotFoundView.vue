@@ -2,6 +2,13 @@
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
+/**
+ * Returns the user to the login page from the not-found screen.
+ */
+const navigateHome = () => {
+  void router.push('/login')
+}
 </script>
 
 <template>
@@ -10,7 +17,7 @@ const router = useRouter()
       <p class="eyebrow">404</p>
       <h1>Page not found</h1>
       <p>The page you are looking for does not exist or has been moved.</p>
-      <button type="button" @click="router.push('/login')">Go back</button>
+      <button type="button" @click="navigateHome">Go back</button>
     </section>
   </main>
 </template>

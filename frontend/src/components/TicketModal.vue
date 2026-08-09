@@ -29,6 +29,9 @@ const emit = defineEmits<{
 const users = ref<UserSummaryResponseDto[]>([])
 const loadingUsers = ref(false)
 
+/**
+ * Indicates whether the current user can edit the assignment field.
+ */
 const canEditAssignedTo = computed(() => props.currentUser?.role === 'ADMIN' && props.mode === 'edit')
 
 const { form, formErrors, validate, buildSubmitPayload, watchForReset, title, submitLabel } = useTicketModalForm({
@@ -37,6 +40,12 @@ const { form, formErrors, validate, buildSubmitPayload, watchForReset, title, su
   canEditAssignedTo,
 })
 
+/**
+ * Formats a date string in Swiss locale style.
+ *
+ * @param value ISO date string to format.
+ * @returns Human-readable date and time string.
+ */
 const formatDateTime = (value: string) => {
   return new Date(value).toLocaleString('de-CH', {
     dateStyle: 'short',
@@ -44,6 +53,9 @@ const formatDateTime = (value: string) => {
   })
 }
 
+/**
+ * Loads the list of users that can be assigned to a ticket.
+ */
 const loadUsers = async () => {
   if (!canEditAssignedTo.value) {
     return
@@ -78,6 +90,9 @@ onMounted(() => {
   }
 })
 
+/**
+ * Validates the current form and emits the submit payload.
+ */
 const submit = () => {
   if (!validate()) {
     return
@@ -103,7 +118,7 @@ const submit = () => {
         <div>
           <span class="label">Status</span>
           <p><span class="status-badge" :data-status="props.ticket.status">{{ props.ticket.status.replace(/_/g, ' ')
-          }}</span></p>
+              }}</span></p>
         </div>
         <div>
           <span class="label">Priority</span>

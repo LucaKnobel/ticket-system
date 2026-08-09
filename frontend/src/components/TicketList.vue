@@ -17,12 +17,24 @@ const emit = defineEmits<{
   delete: [ticket: TicketResponseDto]
 }>()
 
+/**
+ * Determines whether the current user can manage the given ticket.
+ *
+ * @param ticket Ticket to evaluate.
+ * @returns True when the current user is an admin or the ticket owner.
+ */
 const canManage = (ticket: TicketResponseDto) => {
   if (!props.currentUser) return false
   if (props.currentUser.role === 'ADMIN') return true
   return ticket.createdBy.id === props.currentUser.id
 }
 
+/**
+ * Formats a date string in Swiss locale style.
+ *
+ * @param value ISO date string to format.
+ * @returns Human-readable date and time string.
+ */
 const formatDateTime = (value: string) => {
   return new Date(value).toLocaleString('de-CH', {
     dateStyle: 'short',
@@ -50,25 +62,25 @@ const formatDateTime = (value: string) => {
             <th>
               <button type="button" class="sort-header" @click="emit('sort', 'priority')">
                 Priority <span>{{ props.sortKey === 'priority' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕'
-                  }}</span>
+                }}</span>
               </button>
             </th>
             <th>
               <button type="button" class="sort-header" @click="emit('sort', 'createdBy')">
                 Created By <span>{{ props.sortKey === 'createdBy' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕'
-                  }}</span>
+                }}</span>
               </button>
             </th>
             <th>
               <button type="button" class="sort-header" @click="emit('sort', 'assignedTo')">
                 Assigned To <span>{{ props.sortKey === 'assignedTo' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕'
-                  }}</span>
+                }}</span>
               </button>
             </th>
             <th>
               <button type="button" class="sort-header" @click="emit('sort', 'createdAt')">
                 Created At <span>{{ props.sortKey === 'createdAt' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕'
-                  }}</span>
+                }}</span>
               </button>
             </th>
             <th>Actions</th>

@@ -9,6 +9,9 @@ export type AuthUser = LoginResponseDto
 const user = ref<AuthUser | null>(null)
 const initialized = ref(false)
 
+/**
+ * Provides shared authentication state and session helpers for the frontend.
+ */
 export const useAuthSession = () => {
   const isAuthenticated = computed(() => user.value !== null)
   const currentUser = computed(() => user.value)
