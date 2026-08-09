@@ -17,17 +17,56 @@ enum Role {
   ADMIN
 }
 
-model User {
-  id           String    @id @default(uuid()) @db.Uuid
-  name         String    @db.VarChar(100)
-  email        String    @unique @db.VarChar(255)
-  passwordHash String    @db.VarChar(255)
-  role         Role      @default(USER)
-  createdAt    DateTime  @default(now()) @db.Timestamptz
-  updatedAt    DateTime  @updatedAt @db.Timestamptz
-  sessions     Session[]
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+}
 
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String    @db.VarChar(100)
+  email           String    @unique @db.VarChar(255)
+  passwordHash    String    @db.VarChar(255)
+  role            Role      @default(USER)
+  deletedAt       DateTime? @db.Timestamptz
+  createdAt       DateTime  @default(now()) @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @db.Timestamptz
+  sessions        Session[]
+  createdTickets  Ticket[]  @relation("TicketCreatedBy")
+  assignedTickets Ticket[]  @relation("TicketAssignedTo")
+
+  @@index([deletedAt])
   @@map("users")
+}
+
+model Ticket {
+  id          String         @id @default(uuid()) @db.Uuid
+  title       String         @db.VarChar(255)
+  description String         @db.Text
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(LOW)
+
+  createdById String @db.Uuid
+  createdBy   User   @relation("TicketCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  assignedToId String? @db.Uuid
+  assignedTo   User?   @relation("TicketAssignedTo", fields: [assignedToId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@index([createdById])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([priority])
+  @@map("tickets")
 }
 
 model Session {

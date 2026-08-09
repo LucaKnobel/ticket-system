@@ -1,4 +1,4 @@
-import type { LoginRequestDto, LoginResponseDto } from '@ticket-system/shared/dto/auth'
+import type { LoginRequestDto, LoginResponseDto } from '@ticket-system/shared'
 
 import { apiClient } from '@/api/client'
 
@@ -23,4 +23,38 @@ export const login = async (dto: LoginRequestDto): Promise<LoginResponseDto> => 
   }
 
   return response.json() as Promise<LoginResponseDto>
+}
+
+/**
+ * Retrieves the currently authenticated user from the session cookie.
+ *
+ * @returns Authenticated user DTO returned by the API.
+ * @throws Error when the backend responds with a non-success status code.
+ */
+export const getSession = async (): Promise<LoginResponseDto> => {
+  const response = await apiClient('/api/auth/session', {
+    method: 'GET',
+  })
+
+  if (!response.ok) {
+    throw new Error('Session check failed.')
+  }
+
+  return response.json() as Promise<LoginResponseDto>
+}
+
+/**
+ * Logs out the currently authenticated user via the backend endpoint.
+ *
+ * @returns Resolves when the logout request succeeds.
+ * @throws Error when the backend responds with a non-success status code.
+ */
+export const logout = async (): Promise<void> => {
+  const response = await apiClient('/api/auth/logout', {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    throw new Error('Logout failed.')
+  }
 }

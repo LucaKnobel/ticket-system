@@ -11,6 +11,7 @@ const toDomainUser = (row: PrismaUser): User => ({
   email: row.email,
   passwordHash: row.passwordHash,
   role: row.role,
+  deletedAt: row.deletedAt,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });
@@ -30,5 +31,18 @@ export const prismaUserRepository: UserRepository = {
     });
 
     return row ? toDomainUser(row) : null;
+  },
+
+  async findAllActive(): Promise<User[]> {
+    const rows = await prisma.user.findMany({
+      where: {
+        deletedAt: null,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return rows.map(toDomainUser);
   },
 };

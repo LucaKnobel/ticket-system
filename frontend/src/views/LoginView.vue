@@ -6,6 +6,9 @@ import LoginForm from "@/components/LoginForm.vue";
 
 const router = useRouter();
 
+/**
+ * Redirects the user to the ticket dashboard after a successful login.
+ */
 const onLoginSuccess = () => {
   void router.push("/tickets");
 };

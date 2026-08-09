@@ -17,5 +17,6 @@ export default defineConfig(({ mode }) => ({
   test: {
     environment: "node",
     env: loadEnv(mode, process.cwd(), ""),
+    setupFiles: [path.resolve(rootDir, "./tests/setup.ts")],
   },
 }));

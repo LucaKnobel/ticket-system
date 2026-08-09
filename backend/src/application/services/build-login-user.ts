@@ -2,6 +2,7 @@ import type { UserRepository } from "@application/interfaces/user-repository.js"
 import type { SessionRepository } from "@application/interfaces/session-repository.js";
 import type { PasswordHasher } from "@application/interfaces/password-hasher.js";
 import type { Logger } from "@application/interfaces/logger.js";
+import type { SessionTokenHasher } from "@application/interfaces/session-token-hasher.js";
 import type { User } from "@application/models/user.js";
 import crypto from "crypto";
 import { InvalidCredentialsError } from "@application/errors/auth-errors.js";
@@ -37,6 +38,7 @@ export const buildLoginUser = (
   sessionRepository: SessionRepository,
   passwordHasher: PasswordHasher,
   logger: Logger,
+  sessionTokenHasher: SessionTokenHasher,
 ) => {
   return async (input: LoginUserInput): Promise<LoginUserOutput> => {
     logger.info("Login attempt started", { email: input.email });
@@ -64,9 +66,7 @@ export const buildLoginUser = (
 
     const sessionToken = crypto.randomBytes(32).toString("hex");
 
-    const hash = crypto.createHash("sha256");
-    hash.update(sessionToken);
-    const sessionTokenHash = hash.digest("hex");
+    const sessionTokenHash = sessionTokenHasher.hash(sessionToken);
 
     await sessionRepository.create({
       tokenHash: sessionTokenHash,
