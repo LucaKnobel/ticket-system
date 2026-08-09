@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 
 import { createTicket, deleteTicket, getTickets, updateTicket } from '@/api/tickets'
 import AppLogo from '@/components/AppLogo.vue'
+import Banner from '@/components/Banner.vue'
 import TicketList from '@/components/TicketList.vue'
 import TicketModal from '@/components/TicketModal.vue'
 import { useAuthSession } from '@/composables/useAuthSession'
@@ -19,8 +20,9 @@ const handleSignOut = async () => {
 
 const tickets = ref<TicketResponseDto[]>([])
 const loading = ref(false)
-const banner = ref('')
+const bannerText = ref('')
 const bannerType = ref<'success' | 'error'>('success')
+const bannerVisible = ref(false)
 const modalOpen = ref(false)
 const modalMode = ref<'view' | 'create' | 'edit'>('view')
 const selectedTicket = ref<TicketResponseDto | null>(null)
@@ -32,8 +34,9 @@ const loadTickets = async () => {
   try {
     tickets.value = await getTickets()
   } catch {
-    banner.value = 'An unexpected error occurred.'
+    bannerText.value = 'An unexpected error occurred.'
     bannerType.value = 'error'
+    bannerVisible.value = true
   } finally {
     loading.value = false
   }
@@ -79,8 +82,9 @@ const handleCreate = async (payload: CreateTicketRequestDto) => {
     }
 
     await createTicket(nextPayload)
-    banner.value = 'Ticket created successfully.'
+    bannerText.value = 'Ticket created successfully.'
     bannerType.value = 'success'
+    bannerVisible.value = true
     modalOpen.value = false
     selectedTicket.value = null
     modalMode.value = 'view'
@@ -101,8 +105,9 @@ const handleEdit = async (payload: UpdateTicketRequestDto) => {
 
   try {
     await updateTicket(selectedTicket.value.id, payload)
-    banner.value = 'Ticket updated successfully.'
+    bannerText.value = 'Ticket updated successfully.'
     bannerType.value = 'success'
+    bannerVisible.value = true
     closeModal()
     await loadTickets()
   } catch (error) {
@@ -121,12 +126,14 @@ const handleDelete = async (ticket: TicketResponseDto) => {
 
   try {
     await deleteTicket(ticket.id)
-    banner.value = 'Ticket deleted successfully.'
+    bannerText.value = 'Ticket deleted successfully.'
     bannerType.value = 'success'
+    bannerVisible.value = true
     await loadTickets()
   } catch {
-    banner.value = 'An unexpected error occurred.'
+    bannerText.value = 'An unexpected error occurred.'
     bannerType.value = 'error'
+    bannerVisible.value = true
   } finally {
     submitting.value = false
   }
@@ -171,7 +178,8 @@ onMounted(() => {
         <button type="button" @click="openCreateModal">Create Ticket</button>
       </div>
 
-      <p v-if="banner" class="banner" :class="`banner--${bannerType}`">{{ banner }}</p>
+      <Banner v-if="bannerVisible || bannerText" :text="bannerText" :type="bannerType" :visible="bannerVisible"
+        :delay-ms="5000" @hide="bannerText = ''; bannerVisible = false" />
 
       <TicketList :tickets="tickets" :current-user="currentUser" :loading="loading" @view="openViewModal"
         @edit="openEditModal" @delete="handleDelete" />
