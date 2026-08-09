@@ -4,9 +4,21 @@ import * as z from "zod";
  * Ticket creation request payload shared between the frontend and backend.
  */
 export const CreateTicketRequestSchema = z.object({
-  title: z.string().min(1).max(255),
-  description: z.string().min(1).max(5000),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("LOW"),
+  title: z
+    .string({ error: "Please enter a title for the ticket." })
+    .min(1, "Please enter a title for the ticket.")
+    .max(255, "Please keep the title short. Maximum 255 characters."),
+  description: z
+    .string({
+      error: "Please add a short description so the ticket can be understood.",
+    })
+    .min(1, "Please add a short description so the ticket can be understood.")
+    .max(5000, "Please shorten the description. Maximum 5000 characters."),
+  priority: z
+    .enum(["LOW", "MEDIUM", "HIGH"], {
+      error: "Please choose a valid priority.",
+    })
+    .default("LOW"),
 });
 
 /**
@@ -51,11 +63,25 @@ export type TicketResponseDto = z.infer<typeof TicketResponseSchema>;
  * Ticket update request payload shared between the frontend and backend.
  */
 export const UpdateTicketRequestSchema = z.object({
-  title: z.string().min(1).max(255),
-  description: z.string().min(1).max(5000),
-  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
-  assignedToId: z.uuid().nullable(),
+  title: z
+    .string({ error: "Please enter a title for the ticket." })
+    .min(1, "Please enter a title for the ticket.")
+    .max(255, "Please keep the title short. Maximum 255 characters."),
+  description: z
+    .string({
+      error: "Please add a short description so the ticket can be understood.",
+    })
+    .min(1, "Please add a short description so the ticket can be understood.")
+    .max(5000, "Please shorten the description. Maximum 5000 characters."),
+  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"], {
+    error: "Please choose a valid status.",
+  }),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"], {
+    error: "Please choose a valid priority.",
+  }),
+  assignedToId: z
+    .uuid({ error: "Please select a valid assignee or leave the field empty." })
+    .nullable(),
 });
 
 /**
