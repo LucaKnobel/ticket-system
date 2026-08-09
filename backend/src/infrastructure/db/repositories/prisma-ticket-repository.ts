@@ -86,6 +86,28 @@ export const prismaTicketRepository: TicketRepository = {
     return row ? toDomainTicket(row) : null;
   },
 
+  async findByIdWithUsers(id: string): Promise<TicketWithUsers | null> {
+    const row = await prisma.ticket.findUnique({
+      where: { id },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return row ? toDomainTicketWithUsers(row) : null;
+  },
+
   async create(input: CreateTicketInput): Promise<Ticket> {
     const data: Prisma.TicketCreateInput = {
       title: input.title,

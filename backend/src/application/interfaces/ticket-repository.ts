@@ -24,6 +24,7 @@ export interface TicketRepository {
   findAll(): Promise<Ticket[]>;
   findAllWithUsers(): Promise<TicketWithUsers[]>;
   findById(id: string): Promise<Ticket | null>;
+  findByIdWithUsers(id: string): Promise<TicketWithUsers | null>;
   create(data: CreateTicketInput): Promise<Ticket>;
   update(id: string, data: UpdateTicketInput): Promise<Ticket>;
   delete(id: string): Promise<void>;
