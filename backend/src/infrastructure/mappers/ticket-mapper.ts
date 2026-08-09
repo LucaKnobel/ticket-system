@@ -16,10 +16,17 @@ export const toTicketResponseDto = (
     description: ticket.description,
     status: ticket.status,
     priority: ticket.priority,
-    createdById: ticket.createdById,
-    createdByName: ticket.createdByName,
-    assignedToId: ticket.assignedToId,
-    assignedToName: ticket.assignedToName,
+    createdBy: {
+      id: ticket.createdById,
+      name: ticket.createdByName,
+    },
+    assignedTo:
+      ticket.assignedToId && ticket.assignedToName
+        ? {
+            id: ticket.assignedToId,
+            name: ticket.assignedToName,
+          }
+        : null,
     createdAt: ticket.createdAt.toISOString(),
     updatedAt: ticket.updatedAt.toISOString(),
   });
