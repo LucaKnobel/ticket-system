@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import type { LoginResponseDto, TicketResponseDto } from '@ticket-system/shared'
+import type { TicketSortDirection, TicketSortKey } from '@/utils/ticket-sorting'
 
 const props = defineProps<{
   tickets: TicketResponseDto[]
   currentUser: LoginResponseDto | null
   loading: boolean
+  sortKey: TicketSortKey
+  sortDirection: TicketSortDirection
 }>()
 
 const emit = defineEmits<{
+  sort: [key: TicketSortKey]
   view: [ticket: TicketResponseDto]
   edit: [ticket: TicketResponseDto]
   delete: [ticket: TicketResponseDto]
@@ -33,12 +37,40 @@ const formatDateTime = (value: string) => {
       <table v-if="tickets.length > 0" class="desktop-table">
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Created By</th>
-            <th>Assigned To</th>
-            <th>Last Updated</th>
+            <th>
+              <button type="button" class="sort-header" @click="emit('sort', 'title')">
+                Title <span>{{ props.sortKey === 'title' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header" @click="emit('sort', 'status')">
+                Status <span>{{ props.sortKey === 'status' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕' }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header" @click="emit('sort', 'priority')">
+                Priority <span>{{ props.sortKey === 'priority' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕'
+                  }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header" @click="emit('sort', 'createdBy')">
+                Created By <span>{{ props.sortKey === 'createdBy' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕'
+                  }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header" @click="emit('sort', 'assignedTo')">
+                Assigned To <span>{{ props.sortKey === 'assignedTo' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕'
+                  }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header" @click="emit('sort', 'createdAt')">
+                Created At <span>{{ props.sortKey === 'createdAt' ? (props.sortDirection === 'asc' ? '↑' : '↓') : '↕'
+                  }}</span>
+              </button>
+            </th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -53,7 +85,7 @@ const formatDateTime = (value: string) => {
             </td>
             <td>{{ ticket.createdBy.name }}</td>
             <td>{{ ticket.assignedTo?.name ?? 'Unassigned' }}</td>
-            <td>{{ formatDateTime(ticket.updatedAt) }}</td>
+            <td>{{ formatDateTime(ticket.createdAt) }}</td>
             <td>
               <div class="actions">
                 <button type="button" class="ghost-button" @click="emit('view', ticket)">View</button>
@@ -87,8 +119,8 @@ const formatDateTime = (value: string) => {
               <span class="meta-value">{{ ticket.createdBy.name }}</span>
             </div>
             <div class="ticket-meta-row">
-              <span class="meta-label">Updated</span>
-              <span class="meta-value">{{ formatDateTime(ticket.updatedAt) }}</span>
+              <span class="meta-label">Created</span>
+              <span class="meta-value">{{ formatDateTime(ticket.createdAt) }}</span>
             </div>
           </div>
 
@@ -146,6 +178,21 @@ const formatDateTime = (value: string) => {
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-border);
+}
+
+.sort-header {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-size: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
 }
 
 .desktop-table tbody tr+tr td {

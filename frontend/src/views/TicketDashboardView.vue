@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { createTicket, deleteTicket, getTickets, updateTicket } from '@/api/tickets'
@@ -9,6 +9,7 @@ import TicketList from '@/components/TicketList.vue'
 import TicketModal from '@/components/TicketModal.vue'
 import { useAuthSession } from '@/composables/useAuthSession'
 import type { CreateTicketRequestDto, TicketResponseDto, UpdateTicketRequestDto } from '@ticket-system/shared'
+import { sortTickets, type TicketSortDirection, type TicketSortKey } from '@/utils/ticket-sorting'
 
 const router = useRouter()
 const { currentUser, signOut } = useAuthSession()
@@ -28,6 +29,20 @@ const modalMode = ref<'view' | 'create' | 'edit'>('view')
 const selectedTicket = ref<TicketResponseDto | null>(null)
 const submitting = ref(false)
 const modalError = ref('')
+const sortKey = ref<TicketSortKey>('createdAt')
+const sortDirection = ref<TicketSortDirection>('desc')
+
+const sortedTickets = computed(() => sortTickets(tickets.value, sortKey.value, sortDirection.value))
+
+const toggleSort = (key: TicketSortKey) => {
+  if (sortKey.value === key) {
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+    return
+  }
+
+  sortKey.value = key
+  sortDirection.value = key === 'createdAt' ? 'desc' : 'asc'
+}
 
 const loadTickets = async () => {
   loading.value = true
@@ -181,8 +196,9 @@ onMounted(() => {
       <Banner v-if="bannerVisible || bannerText" :text="bannerText" :type="bannerType" :visible="bannerVisible"
         :delay-ms="5000" @hide="bannerText = ''; bannerVisible = false" />
 
-      <TicketList :tickets="tickets" :current-user="currentUser" :loading="loading" @view="openViewModal"
-        @edit="openEditModal" @delete="handleDelete" />
+      <TicketList :tickets="sortedTickets" :current-user="currentUser" :loading="loading" :sort-key="sortKey"
+        :sort-direction="sortDirection" @sort="toggleSort" @view="openViewModal" @edit="openEditModal"
+        @delete="handleDelete" />
     </section>
 
     <TicketModal :open="modalOpen" :mode="modalMode" :ticket="selectedTicket" :current-user="currentUser"
@@ -252,6 +268,29 @@ onMounted(() => {
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.sort-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.sort-button {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sort-button span {
+  font-weight: 700;
 }
 
 .banner {
