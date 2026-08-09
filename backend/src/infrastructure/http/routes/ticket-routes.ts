@@ -17,16 +17,7 @@ ticketRoutes.use("*", requireAuth);
 ticketRoutes.get("/", async (c) => {
   const tickets = await listTickets();
 
-  return c.json(
-    tickets.map((ticket) =>
-      toTicketResponseDto(
-        ticket,
-        ticket.createdByName,
-        ticket.assignedToName,
-      ),
-    ),
-    200,
-  );
+  return c.json(tickets.map(toTicketResponseDto), 200);
 });
 
 ticketRoutes.post(
@@ -44,7 +35,11 @@ ticketRoutes.post(
     });
 
     return c.json(
-      toTicketResponseDto(ticket, user.name, null),
+      toTicketResponseDto({
+        ...ticket,
+        createdByName: user.name,
+        assignedToName: null,
+      }),
       201,
     );
   },

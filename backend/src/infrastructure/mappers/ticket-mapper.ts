@@ -1,16 +1,14 @@
-import type { Ticket } from "@application/models/ticket.js";
+import type { TicketWithUsers } from "@application/models/ticket.js";
 import {
   TicketResponseSchema,
   type TicketResponseDto,
 } from "@ticket-system/shared";
 
 /**
- * Maps a persisted ticket domain model to a shared response DTO.
+ * Maps a persisted ticket read model to a shared response DTO.
  */
 export const toTicketResponseDto = (
-  ticket: Ticket,
-  createdByName: string,
-  assignedToName?: string | null,
+  ticket: TicketWithUsers,
 ): TicketResponseDto => {
   return TicketResponseSchema.parse({
     id: ticket.id,
@@ -19,9 +17,9 @@ export const toTicketResponseDto = (
     status: ticket.status,
     priority: ticket.priority,
     createdById: ticket.createdById,
-    createdByName,
-    assignedToId: ticket.assignedToId ?? null,
-    assignedToName: assignedToName ?? null,
+    createdByName: ticket.createdByName,
+    assignedToId: ticket.assignedToId,
+    assignedToName: ticket.assignedToName,
     createdAt: ticket.createdAt.toISOString(),
     updatedAt: ticket.updatedAt.toISOString(),
   });
