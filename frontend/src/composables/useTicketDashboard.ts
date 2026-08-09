@@ -30,10 +30,18 @@ export const useTicketDashboard = () => {
   const sortKey = ref<TicketSortKey>('createdAt')
   const sortDirection = ref<TicketSortDirection>('desc')
 
+  /**
+   * Returns the currently visible tickets in the active sort order.
+   */
   const sortedTickets = computed(() =>
     sortTickets(tickets.value, sortKey.value, sortDirection.value),
   )
 
+  /**
+   * Toggles the sort direction for a column or switches to a new sort key.
+   *
+   * @param key The column to sort by.
+   */
   const toggleSort = (key: TicketSortKey) => {
     if (sortKey.value === key) {
       sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
@@ -44,6 +52,9 @@ export const useTicketDashboard = () => {
     sortDirection.value = key === 'createdAt' ? 'desc' : 'asc'
   }
 
+  /**
+   * Fetches tickets from the API and updates the banner on failure.
+   */
   const loadTickets = async () => {
     loading.value = true
 
@@ -58,6 +69,9 @@ export const useTicketDashboard = () => {
     }
   }
 
+  /**
+   * Opens the create-ticket modal.
+   */
   const openCreateModal = () => {
     selectedTicket.value = null
     modalMode.value = 'create'
@@ -65,6 +79,11 @@ export const useTicketDashboard = () => {
     modalOpen.value = true
   }
 
+  /**
+   * Opens the view-only modal for a selected ticket.
+   *
+   * @param ticket Ticket to display.
+   */
   const openViewModal = (ticket: TicketResponseDto) => {
     selectedTicket.value = ticket
     modalMode.value = 'view'
@@ -72,6 +91,11 @@ export const useTicketDashboard = () => {
     modalOpen.value = true
   }
 
+  /**
+   * Opens the edit modal for a selected ticket.
+   *
+   * @param ticket Ticket to edit.
+   */
   const openEditModal = (ticket: TicketResponseDto) => {
     selectedTicket.value = ticket
     modalMode.value = 'edit'
@@ -79,12 +103,20 @@ export const useTicketDashboard = () => {
     modalOpen.value = true
   }
 
+  /**
+   * Closes the active modal and clears its temporary error state.
+   */
   const closeModal = () => {
     modalOpen.value = false
     modalError.value = ''
     selectedTicket.value = null
   }
 
+  /**
+   * Creates a new ticket and refreshes the list on success.
+   *
+   * @param payload Ticket creation payload.
+   */
   const handleCreate = async (payload: CreateTicketRequestDto) => {
     submitting.value = true
     modalError.value = ''
@@ -113,6 +145,11 @@ export const useTicketDashboard = () => {
     }
   }
 
+  /**
+   * Updates an existing ticket and refreshes the list on success.
+   *
+   * @param payload Ticket update payload.
+   */
   const handleEdit = async (payload: UpdateTicketRequestDto) => {
     if (!selectedTicket.value) return
 
@@ -134,6 +171,11 @@ export const useTicketDashboard = () => {
     }
   }
 
+  /**
+   * Deletes a ticket after user confirmation.
+   *
+   * @param ticket Ticket to delete.
+   */
   const handleDelete = async (ticket: TicketResponseDto) => {
     const confirmed = window.confirm('Are you sure you want to delete this ticket?')
     if (!confirmed) return
@@ -155,11 +197,17 @@ export const useTicketDashboard = () => {
     }
   }
 
+  /**
+   * Signs the user out and redirects them to the login page.
+   */
   const handleSignOut = async () => {
     await signOut()
     await router.push('/login')
   }
 
+  /**
+   * Ensures the user is authenticated before loading the dashboard data.
+   */
   const ensureAuth = async () => {
     if (!currentUser.value) {
       await router.push('/login')
@@ -173,6 +221,11 @@ export const useTicketDashboard = () => {
     void ensureAuth()
   })
 
+  /**
+   * Dispatches the modal submission payload to the correct create or update handler.
+   *
+   * @param payload Ticket payload from the modal form.
+   */
   const handleModalSubmit = (payload: CreateTicketRequestDto | UpdateTicketRequestDto) => {
     if (modalMode.value === 'create') {
       return handleCreate(payload as CreateTicketRequestDto)

@@ -5,6 +5,9 @@ import TicketList from '@/components/TicketList.vue'
 import TicketModal from '@/components/TicketModal.vue'
 import { useTicketDashboard } from '@/composables/useTicketDashboard'
 
+/**
+ * Dashboard view state and actions composed from the ticket dashboard composable.
+ */
 const {
   currentUser,
   loading,

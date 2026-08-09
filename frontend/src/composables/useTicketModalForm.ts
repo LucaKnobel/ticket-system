@@ -24,6 +24,11 @@ export type UseTicketModalFormOptions = {
   canEditAssignedTo: Ref<boolean>
 }
 
+/**
+ * Creates the default empty ticket form state.
+ *
+ * @returns Initial form values for a new ticket.
+ */
 const createInitialFormState = (): TicketFormState => ({
   title: '',
   description: '',
@@ -40,6 +45,9 @@ export const useTicketModalForm = ({
   const form = ref<TicketFormState>(createInitialFormState())
   const formErrors = ref<Record<string, string>>({})
 
+  /**
+   * Resets the form with the selected ticket data or empty defaults.
+   */
   const resetForm = () => {
     if (ticket.value) {
       form.value = {
@@ -55,6 +63,11 @@ export const useTicketModalForm = ({
     form.value = createInitialFormState()
   }
 
+  /**
+   * Validates the current form values with the shared DTO schema.
+   *
+   * @returns True when the form is valid.
+   */
   const validate = () => {
     formErrors.value = {}
 
@@ -101,6 +114,11 @@ export const useTicketModalForm = ({
     return true
   }
 
+  /**
+   * Builds the payload that should be emitted for the current modal mode.
+   *
+   * @returns Create or update payload based on the active mode.
+   */
   const buildSubmitPayload = (): CreateTicketRequestDto | UpdateTicketRequestDto => {
     if (mode.value === 'create') {
       return {
@@ -121,6 +139,11 @@ export const useTicketModalForm = ({
     }
   }
 
+  /**
+   * Watches the modal open state and resets the form whenever it opens.
+   *
+   * @param open A ref that tracks whether the modal is open.
+   */
   const watchForReset = (open: Ref<boolean>) => {
     watch(
       () => [open.value, mode.value, ticket.value],

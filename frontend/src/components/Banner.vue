@@ -5,6 +5,9 @@ defineOptions({
   name: 'InfoBanner',
 })
 
+/**
+ * Banner props for transient success or error messages.
+ */
 const props = withDefaults(defineProps<{
   text: string
   type?: 'success' | 'error'
@@ -16,6 +19,9 @@ const props = withDefaults(defineProps<{
   delayMs: 5000,
 })
 
+/**
+ * Emits when the banner should be hidden after its timeout expires.
+ */
 const emit = defineEmits<{
   hide: []
 }>()
@@ -23,6 +29,9 @@ const emit = defineEmits<{
 const localVisible = ref(props.visible)
 let timeoutId: ReturnType<typeof setTimeout> | null = null
 
+/**
+ * Clears any pending auto-hide timeout.
+ */
 const clearTimeoutHandle = () => {
   if (timeoutId) {
     clearTimeout(timeoutId)
@@ -30,6 +39,9 @@ const clearTimeoutHandle = () => {
   }
 }
 
+/**
+ * Starts the timer that hides the banner after a delay.
+ */
 const startHideTimer = () => {
   clearTimeoutHandle()
 
