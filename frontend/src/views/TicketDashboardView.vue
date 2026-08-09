@@ -99,7 +99,8 @@ const {
   gap: 1rem;
   font-weight: 600;
   color: var(--color-text);
-  padding: 0.45rem 0.7rem;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
   border-radius: 0.65rem;
   background: rgba(15, 23, 42, 0.04);
   border: 1px solid rgba(15, 23, 42, 0.08);
@@ -109,7 +110,7 @@ const {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  line-height: 1.3;
+  line-height: 1.5;
 }
 
 .ghost-button {
