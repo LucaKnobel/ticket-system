@@ -5,6 +5,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { logger } from "@infrastructure/logging/logger.js";
 import { errorHandler } from "@infrastructure/http/error-handler.js";
 import { authRoutes } from "@infrastructure/http/routes/auth-routes.js";
+import { ticketRoutes } from "@infrastructure/http/routes/ticket-routes.js";
 
 export const app = new Hono();
 
@@ -33,5 +34,6 @@ app.get("/health", (c) => {
 });
 
 app.route("/auth", authRoutes);
+app.route("/tickets", ticketRoutes);
 
 app.onError(errorHandler);

@@ -3,6 +3,7 @@ import { logger } from "@infrastructure/logging/logger.js";
 
 import { buildLoginUser } from "@application/services/build-login-user.js";
 import { buildLogoutUser } from "@application/services/build-logout-user.js";
+import { buildAuthenticateSession } from "@application/services/build-authenticate-session.js";
 
 import { prismaUserRepository } from "@infrastructure/db/repositories/prisma-user-repository.js";
 import { prismaSessionRepository } from "@infrastructure/db/repositories/prisma-session-repository.js";
@@ -18,6 +19,13 @@ export const loginUser = buildLoginUser(
 
 export const logoutUser = buildLogoutUser(
   prismaSessionRepository,
+  logger,
+  sha256SessionTokenHasher,
+);
+
+export const authenticateSession = buildAuthenticateSession(
+  prismaSessionRepository,
+  prismaUserRepository,
   logger,
   sha256SessionTokenHasher,
 );
