@@ -19,7 +19,7 @@ export const login = async (dto: LoginRequestDto): Promise<LoginResponseDto> => 
   })
 
   if (!response.ok) {
-    throw new Error('Login failed.')
+    throw new Error('Login failed!')
   }
 
   return response.json() as Promise<LoginResponseDto>
@@ -37,7 +37,7 @@ export const getSession = async (): Promise<LoginResponseDto> => {
   })
 
   if (!response.ok) {
-    throw new Error('Session check failed.')
+    throw new Error('Session check failed!')
   }
 
   return response.json() as Promise<LoginResponseDto>
@@ -55,6 +55,6 @@ export const logout = async (): Promise<void> => {
   })
 
   if (!response.ok) {
-    throw new Error('Logout failed.')
+    throw new Error('Logout failed!')
   }
 }

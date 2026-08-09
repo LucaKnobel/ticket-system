@@ -308,7 +308,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
 
-    # Frontend deploy waits for frontend image and backend deploy ordering.
+    # Frontend deploy waits for backend only when backend actually changed.
+    # This keeps frontend-only changes deployable without a backend deploy,
+    # while still enforcing backend-first ordering when both changed.
     needs:
       - changes
       - frontend-image
@@ -316,9 +318,10 @@ jobs:
 
     if: >-
       ${{
+      always() &&
       needs.changes.outputs.frontend == 'true' &&
       needs.frontend-image.result == 'success' &&
-      (needs.backend-deploy.result == 'success' || needs.backend-deploy.result == 'skipped') }}
+      (needs.changes.outputs.backend == 'false' || needs.backend-deploy.result == 'success') }}
 
     permissions:
       contents: read
