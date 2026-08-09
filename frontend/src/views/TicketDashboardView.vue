@@ -12,6 +12,11 @@ import type { CreateTicketRequestDto, TicketResponseDto, UpdateTicketRequestDto 
 const router = useRouter()
 const { currentUser, signOut } = useAuthSession()
 
+const handleSignOut = async () => {
+  await signOut()
+  await router.push('/login')
+}
+
 const tickets = ref<TicketResponseDto[]>([])
 const loading = ref(false)
 const banner = ref('')
@@ -153,7 +158,7 @@ onMounted(() => {
             <span>Role: {{ currentUser.role === 'ADMIN' ? 'Admin' : 'User' }}</span>
           </div>
         </div>
-        <button type="button" class="ghost-button" @click="signOut">Logout</button>
+        <button type="button" class="ghost-button" @click="handleSignOut">Logout</button>
       </div>
     </header>
 
