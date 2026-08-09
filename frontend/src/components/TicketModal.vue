@@ -61,6 +61,13 @@ const submitLabel = computed(() => {
 
 const canEditAssignedTo = computed(() => props.currentUser?.role === 'ADMIN' && props.mode === 'edit')
 
+const formatDateTime = (value: string) => {
+  return new Date(value).toLocaleString('de-CH', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
+}
+
 const loadUsers = async () => {
   if (!canEditAssignedTo.value) {
     return
@@ -191,7 +198,7 @@ const submit = () => {
     <div class="modal-card">
       <div class="modal-header">
         <h2>{{ title }}</h2>
-        <button class="ghost-button" type="button" @click="emit('close')">×</button>
+        <button class="ghost-button close-button" type="button" @click="emit('close')" aria-label="Close">×</button>
       </div>
 
       <div v-if="props.mode === 'view' && props.ticket" class="details-grid">
@@ -218,7 +225,7 @@ const submit = () => {
         </div>
         <div>
           <span class="label">Last updated</span>
-          <p>{{ new Date(props.ticket.updatedAt).toLocaleString() }}</p>
+          <p>{{ formatDateTime(props.ticket.updatedAt) }}</p>
         </div>
         <div class="full-width">
           <span class="label">Description</span>
@@ -317,6 +324,17 @@ const submit = () => {
   background: transparent;
   color: var(--color-text);
   border: 1px solid var(--color-border);
+}
+
+.close-button {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .form-grid {
