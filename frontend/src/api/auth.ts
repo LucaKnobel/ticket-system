@@ -1,4 +1,4 @@
-import type { LoginRequestDto, LoginResponseDto } from '@ticket-system/shared/dto/auth'
+import type { LoginRequestDto, LoginResponseDto } from '@ticket-system/shared'
 
 import { apiClient } from '@/api/client'
 

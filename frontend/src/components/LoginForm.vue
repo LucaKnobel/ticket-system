@@ -1,59 +1,68 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue'
 
-import { LoginRequestSchema } from "@ticket-system/shared/dto/auth";
+import { LoginRequestSchema } from '@ticket-system/shared'
 
-import { login } from "@/api/auth";
+import { login } from '@/api/auth'
+import { useAuthSession } from '@/composables/useAuthSession'
 
 /**
  * Emitted after a successful login request.
  */
 const emit = defineEmits<{
-  success: [];
-}>();
+  success: []
+}>()
 
-const email = ref("");
-const password = ref("");
+const { setUser } = useAuthSession()
 
-const emailError = ref("");
-const passwordError = ref("");
-const loginError = ref("");
+const email = ref('')
+const password = ref('')
+
+const emailError = ref('')
+const passwordError = ref('')
+const loginError = ref('')
 
 /**
  * Validates form input and triggers the login API call.
  * Emits `success` when authentication succeeds.
  */
 const onSubmit = async () => {
-  emailError.value = "";
-  passwordError.value = "";
-  loginError.value = "";
+  emailError.value = ''
+  passwordError.value = ''
+  loginError.value = ''
 
   const result = LoginRequestSchema.safeParse({
     email: email.value,
     password: password.value,
-  });
+  })
 
   if (!result.success) {
     for (const issue of result.error.issues) {
-      if (issue.path[0] === "email" && !emailError.value) {
-        emailError.value = issue.message;
+      if (issue.path[0] === 'email' && !emailError.value) {
+        emailError.value = issue.message
       }
 
-      if (issue.path[0] === "password" && !passwordError.value) {
-        passwordError.value = issue.message;
+      if (issue.path[0] === 'password' && !passwordError.value) {
+        passwordError.value = issue.message
       }
     }
 
-    return;
+    return
   }
 
   try {
-    await login(result.data);
-    emit("success");
+    const response = await login(result.data)
+    setUser({
+      id: response.id,
+      name: response.name,
+      email: response.email,
+      role: response.role,
+    })
+    emit('success')
   } catch {
-    loginError.value = "Invalid email or password.";
+    loginError.value = 'Invalid email or password.'
   }
-};
+}
 </script>
 
 <template>
