@@ -24,3 +24,19 @@ export const login = async (dto: LoginRequestDto): Promise<LoginResponseDto> => 
 
   return response.json() as Promise<LoginResponseDto>
 }
+
+/**
+ * Logs out the currently authenticated user via the backend endpoint.
+ *
+ * @returns Resolves when the logout request succeeds.
+ * @throws Error when the backend responds with a non-success status code.
+ */
+export const logout = async (): Promise<void> => {
+  const response = await apiClient('/api/auth/logout', {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    throw new Error('Logout failed.')
+  }
+}
