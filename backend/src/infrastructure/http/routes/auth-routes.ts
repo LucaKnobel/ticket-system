@@ -36,7 +36,7 @@ authRoutes.post("/login", zValidator("json", LoginRequestSchema), async (c) => {
     path: c.req.path,
   });
 
-  return c.json({ user: toLoginUserResponseDto(result.user) }, 200);
+  return c.json(toLoginUserResponseDto(result.user), 200);
 });
 
 authRoutes.post("/logout", async (c) => {
