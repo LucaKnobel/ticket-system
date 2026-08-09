@@ -21,7 +21,6 @@ export type UpdateTicketInput = {
 };
 
 export interface TicketRepository {
-  findAll(): Promise<Ticket[]>;
   findAllWithUsers(): Promise<TicketWithUsers[]>;
   findById(id: string): Promise<Ticket | null>;
   findByIdWithUsers(id: string): Promise<TicketWithUsers | null>;
