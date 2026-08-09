@@ -5,6 +5,7 @@ import { requireAuth } from "@infrastructure/http/middleware/auth-middleware.js"
 import type { AppEnv } from "@infrastructure/http/types.js";
 import {
   createTicket,
+  deleteTicket,
   getTicket,
   listTickets,
   updateTicket,
@@ -89,5 +90,18 @@ ticketRoutes.put(
     );
 
     return c.json(toTicketResponseDto(ticket), 200);
+  },
+);
+
+ticketRoutes.delete(
+  "/:id",
+  zValidator("param", UpdateTicketParamSchema),
+  async (c) => {
+    const user = c.var.user;
+    const { id } = c.req.valid("param");
+
+    await deleteTicket(id, user);
+
+    return c.body(null, 204);
   },
 );
