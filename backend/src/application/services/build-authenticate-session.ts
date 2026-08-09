@@ -4,6 +4,9 @@ import type { Logger } from "@application/interfaces/logger.js";
 import type { SessionTokenHasher } from "@application/interfaces/session-token-hasher.js";
 import type { User } from "@application/models/user.js";
 
+/**
+ * Builds a session authenticator that validates a session token and resolves the associated user.
+ */
 export const buildAuthenticateSession = (
   sessionRepository: SessionRepository,
   userRepository: UserRepository,

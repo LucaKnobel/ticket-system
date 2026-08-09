@@ -5,6 +5,9 @@ import { SESSION_COOKIE_NAME } from "@config/auth.js";
 import { authenticateSession } from "@infrastructure/composition.js";
 import type { AppEnv } from "@infrastructure/http/types.js";
 
+/**
+ * Ensures that the request is authenticated before continuing.
+ */
 export const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
   const sessionToken = getCookie(c, SESSION_COOKIE_NAME);
 
