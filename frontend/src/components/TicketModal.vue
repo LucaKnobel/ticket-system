@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 
-import {
-  CreateTicketRequestSchema,
-  UpdateTicketRequestSchema,
-  type CreateTicketRequestDto,
-  type LoginResponseDto,
-  type TicketResponseDto,
-  type UpdateTicketRequestDto,
-  type UserSummaryResponseDto,
+import type {
+  CreateTicketRequestDto,
+  LoginResponseDto,
+  TicketResponseDto,
+  UpdateTicketRequestDto,
+  UserSummaryResponseDto,
 } from '@ticket-system/shared'
 
 import { getUsers } from '@/api/users'
+import { useTicketModalForm } from '@/composables/useTicketModalForm'
 
 const props = defineProps<{
   open: boolean
@@ -27,39 +26,16 @@ const emit = defineEmits<{
   submit: [payload: CreateTicketRequestDto | UpdateTicketRequestDto]
 }>()
 
-type TicketFormState = {
-  title: string
-  description: string
-  priority: 'LOW' | 'MEDIUM' | 'HIGH'
-  status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED'
-  assignedToId: string
-}
-
-const form = ref<TicketFormState>({
-  title: '',
-  description: '',
-  priority: 'LOW',
-  status: 'OPEN',
-  assignedToId: '',
-})
-
-const formErrors = ref<Record<string, string>>({})
 const users = ref<UserSummaryResponseDto[]>([])
 const loadingUsers = ref(false)
 
-const title = computed(() => {
-  if (props.mode === 'create') return 'Create ticket'
-  if (props.mode === 'edit') return 'Edit ticket'
-  return 'Ticket details'
-})
-
-const submitLabel = computed(() => {
-  if (props.mode === 'create') return 'Create Ticket'
-  if (props.mode === 'edit') return 'Update Ticket'
-  return 'Close'
-})
-
 const canEditAssignedTo = computed(() => props.currentUser?.role === 'ADMIN' && props.mode === 'edit')
+
+const { form, formErrors, validate, buildSubmitPayload, watchForReset, title, submitLabel } = useTicketModalForm({
+  mode: computed(() => props.mode),
+  ticket: computed(() => props.ticket),
+  canEditAssignedTo,
+})
 
 const formatDateTime = (value: string) => {
   return new Date(value).toLocaleString('de-CH', {
@@ -84,38 +60,17 @@ const loadUsers = async () => {
   }
 }
 
-const resetForm = () => {
-  if (props.ticket) {
-    form.value = {
-      title: props.ticket.title,
-      description: props.ticket.description,
-      priority: props.ticket.priority,
-      status: props.ticket.status,
-      assignedToId: props.ticket.assignedTo?.id ?? '',
-    }
-  } else {
-    form.value = {
-      title: '',
-      description: '',
-      priority: 'LOW',
-      status: 'OPEN',
-      assignedToId: '',
-    }
-  }
-
-  formErrors.value = {}
-}
-
 watch(
   () => [props.open, props.mode, props.ticket],
   () => {
     if (props.open) {
-      resetForm()
       void loadUsers()
     }
   },
   { flush: 'post' },
 )
+
+watchForReset(computed(() => props.open))
 
 onMounted(() => {
   if (props.open) {
@@ -123,73 +78,12 @@ onMounted(() => {
   }
 })
 
-const validate = () => {
-  formErrors.value = {}
-
-  if (props.mode === 'create') {
-    const result = CreateTicketRequestSchema.safeParse({
-      title: form.value.title,
-      description: form.value.description,
-      priority: form.value.priority,
-      status: 'OPEN',
-    })
-
-    if (!result.success) {
-      for (const issue of result.error.issues) {
-        const path = issue.path[0]
-        if (path) {
-          formErrors.value[path as string] = issue.message
-        }
-      }
-      return false
-    }
-
-    return true
-  }
-
-  const result = UpdateTicketRequestSchema.safeParse({
-    title: form.value.title,
-    description: form.value.description,
-    priority: form.value.priority,
-    status: form.value.status,
-    assignedToId: canEditAssignedTo.value && form.value.assignedToId ? form.value.assignedToId : null,
-  })
-
-  if (!result.success) {
-    for (const issue of result.error.issues) {
-      const path = issue.path[0]
-      if (path) {
-        formErrors.value[path as string] = issue.message
-      }
-    }
-    return false
-  }
-
-  return true
-}
-
 const submit = () => {
   if (!validate()) {
     return
   }
 
-  if (props.mode === 'create') {
-    emit('submit', {
-      title: form.value.title.trim(),
-      description: form.value.description.trim(),
-      priority: form.value.priority,
-      status: 'OPEN',
-    })
-    return
-  }
-
-  emit('submit', {
-    title: form.value.title.trim(),
-    description: form.value.description.trim(),
-    priority: form.value.priority,
-    status: form.value.status,
-    assignedToId: canEditAssignedTo.value && form.value.assignedToId ? form.value.assignedToId : null,
-  })
+  emit('submit', buildSubmitPayload())
 }
 </script>
 
@@ -209,7 +103,7 @@ const submit = () => {
         <div>
           <span class="label">Status</span>
           <p><span class="status-badge" :data-status="props.ticket.status">{{ props.ticket.status.replace(/_/g, ' ')
-              }}</span></p>
+          }}</span></p>
         </div>
         <div>
           <span class="label">Priority</span>
