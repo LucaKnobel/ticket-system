@@ -128,14 +128,20 @@ export const useTicketDashboard = () => {
         priority: payload.priority,
       }
 
-      await createTicket(nextPayload)
+      const createdTicket = await createTicket(nextPayload)
       bannerText.value = 'Ticket created successfully.'
       bannerType.value = 'success'
       bannerVisible.value = true
       modalOpen.value = false
       selectedTicket.value = null
       modalMode.value = 'view'
-      await loadTickets()
+
+      tickets.value = [
+        createdTicket,
+        ...tickets.value.filter((ticket) => ticket.id !== createdTicket.id),
+      ]
+      sortKey.value = 'createdAt'
+      sortDirection.value = 'desc'
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unexpected error occurred.'
       modalError.value = message

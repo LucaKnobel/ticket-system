@@ -143,16 +143,15 @@ describe('important frontend user flows', () => {
       title: 'Printer issue',
       description: 'The printer keeps freezing.',
       priority: 'HIGH',
-      status: 'OPEN',
     })
 
     expect(createTicketMock).toHaveBeenCalledWith({
       title: 'Printer issue',
       description: 'The printer keeps freezing.',
       priority: 'HIGH',
-      status: 'OPEN',
     })
     expect(wrapper.vm.bannerText).toBe('Ticket created successfully.')
+    expect(wrapper.vm.tickets[0]?.id).toBe('ticket-1')
 
     await wrapper.vm.openEditModal({
       id: 'ticket-1',

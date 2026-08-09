@@ -4,8 +4,15 @@ import * as z from "zod";
  * Login request payload shared between frontend and backend.
  */
 export const LoginRequestSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1).max(255),
+  email: z
+    .string({ error: "Please enter your email address." })
+    .trim()
+    .toLowerCase()
+    .pipe(z.email({ error: "Please enter a valid email address." })),
+  password: z
+    .string({ error: "Please enter your password." })
+    .min(1, "Please enter your password.")
+    .max(255, "Maximum 255 characters."),
 });
 
 /**
