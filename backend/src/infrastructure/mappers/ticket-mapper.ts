@@ -5,7 +5,7 @@ import {
 } from "@ticket-system/shared";
 
 /**
- * Maps a persisted ticket read model to a shared response DTO.
+ * Maps a ticket domain model to the public response DTO.
  */
 export const toTicketResponseDto = (
   ticket: TicketWithUsers,

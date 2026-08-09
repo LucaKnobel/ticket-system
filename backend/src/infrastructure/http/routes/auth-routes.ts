@@ -9,6 +9,9 @@ import { LoginRequestSchema } from "@ticket-system/shared";
 import { loginUser, logoutUser } from "@infrastructure/composition.js";
 import { toLoginUserResponseDto } from "@infrastructure/mappers/user-mapper.js";
 
+/**
+ * Auth routes for login and logout.
+ */
 export const authRoutes = new Hono();
 
 authRoutes.post("/login", zValidator("json", LoginRequestSchema), async (c) => {

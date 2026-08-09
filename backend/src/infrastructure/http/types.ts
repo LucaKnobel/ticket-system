@@ -13,6 +13,9 @@ export type AuthenticatedUser = {
 /**
  * Defines application-specific values available in the Hono context.
  */
+/**
+ * Application environment bindings for the Hono context.
+ */
 export type AppEnv = {
   Variables: {
     user: AuthenticatedUser;

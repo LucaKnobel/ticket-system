@@ -19,7 +19,7 @@ import {
 import { toTicketResponseDto } from "@infrastructure/mappers/ticket-mapper.js";
 
 /**
- * Routes for managing tickets in the application.
+ * Ticket routes for create, read, update, and delete flows.
  */
 export const ticketRoutes = new Hono<AppEnv>();
 
