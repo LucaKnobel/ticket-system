@@ -4,6 +4,7 @@ import { logger } from "@infrastructure/logging/logger.js";
 import { buildLoginUser } from "@application/services/build-login-user.js";
 import { buildLogoutUser } from "@application/services/build-logout-user.js";
 import { buildAuthenticateSession } from "@application/services/build-authenticate-session.js";
+import { buildListUsers } from "@application/services/build-list-users.js";
 import { buildCreateTicket } from "@application/services/build-create-ticket.js";
 import { buildDeleteTicket } from "@application/services/build-delete-ticket.js";
 import { buildGetTicket } from "@application/services/build-get-ticket.js";
@@ -35,6 +36,8 @@ export const authenticateSession = buildAuthenticateSession(
   logger,
   sha256SessionTokenHasher,
 );
+
+export const listUsers = buildListUsers(prismaUserRepository, logger);
 
 export const createTicket = buildCreateTicket(prismaTicketRepository, logger);
 export const getTicket = buildGetTicket(prismaTicketRepository, logger);

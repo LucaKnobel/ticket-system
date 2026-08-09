@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import {
   CreateTicketRequestSchema,
@@ -8,7 +8,10 @@ import {
   type LoginResponseDto,
   type TicketResponseDto,
   type UpdateTicketRequestDto,
+  type UserSummaryResponseDto,
 } from '@ticket-system/shared'
+
+import { getUsers } from '@/api/users'
 
 const props = defineProps<{
   open: boolean
@@ -41,6 +44,8 @@ const form = ref<TicketFormState>({
 })
 
 const formErrors = ref<Record<string, string>>({})
+const users = ref<UserSummaryResponseDto[]>([])
+const loadingUsers = ref(false)
 
 const title = computed(() => {
   if (props.mode === 'create') return 'Create ticket'
@@ -55,6 +60,22 @@ const submitLabel = computed(() => {
 })
 
 const canEditAssignedTo = computed(() => props.currentUser?.role === 'ADMIN' && props.mode === 'edit')
+
+const loadUsers = async () => {
+  if (!canEditAssignedTo.value) {
+    return
+  }
+
+  loadingUsers.value = true
+
+  try {
+    users.value = await getUsers()
+  } catch {
+    users.value = []
+  } finally {
+    loadingUsers.value = false
+  }
+}
 
 const resetForm = () => {
   if (props.ticket) {
@@ -83,10 +104,17 @@ watch(
   () => {
     if (props.open) {
       resetForm()
+      void loadUsers()
     }
   },
   { flush: 'post' },
 )
+
+onMounted(() => {
+  if (props.open) {
+    void loadUsers()
+  }
+})
 
 const validate = () => {
   formErrors.value = {}
@@ -232,8 +260,14 @@ const submit = () => {
         </div>
 
         <div v-if="canEditAssignedTo" class="field full-width">
-          <label for="ticket-assigned">Assigned to (user id)</label>
-          <input id="ticket-assigned" v-model="form.assignedToId" type="text" placeholder="UUID" />
+          <label for="ticket-assigned">Assigned to</label>
+          <select id="ticket-assigned" v-model="form.assignedToId">
+            <option value="">Unassigned</option>
+            <option v-for="user in users" :key="user.id" :value="user.id">
+              {{ user.name }}
+            </option>
+          </select>
+          <p v-if="loadingUsers" class="helper-text">Loading users...</p>
           <p v-if="formErrors.assignedToId" class="error">{{ formErrors.assignedToId }}</p>
         </div>
 
@@ -317,6 +351,11 @@ const submit = () => {
 
 .error {
   color: var(--color-danger);
+  font-size: 0.875rem;
+}
+
+.helper-text {
+  color: var(--color-text-muted);
   font-size: 0.875rem;
 }
 

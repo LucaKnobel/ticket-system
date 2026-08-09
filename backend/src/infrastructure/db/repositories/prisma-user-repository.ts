@@ -32,4 +32,17 @@ export const prismaUserRepository: UserRepository = {
 
     return row ? toDomainUser(row) : null;
   },
+
+  async findAllActive(): Promise<User[]> {
+    const rows = await prisma.user.findMany({
+      where: {
+        deletedAt: null,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return rows.map(toDomainUser);
+  },
 };
