@@ -4,6 +4,9 @@ import {
   type LoginResponseDto as LoginUserResponseDto,
 } from "@ticket-system/shared/dto/auth";
 
+/**
+ * Maps a user domain model to the login response DTO.
+ */
 export const toLoginUserResponseDto = (user: User): LoginUserResponseDto => {
   return LoginResponseSchema.parse({
     id: user.id,

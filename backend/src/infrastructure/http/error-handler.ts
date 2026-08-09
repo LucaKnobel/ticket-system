@@ -8,6 +8,9 @@ import {
 } from "@application/errors/ticket-errors.js";
 import { logger } from "@infrastructure/logging/logger.js";
 
+/**
+ * Maps application and infrastructure errors to HTTP responses.
+ */
 export const errorHandler = (err: Error, c: Context) => {
   if (err instanceof InvalidCredentialsError) {
     logger.warn("Login failed due to invalid credentials", {

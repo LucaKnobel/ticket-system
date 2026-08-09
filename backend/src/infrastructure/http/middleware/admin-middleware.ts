@@ -3,7 +3,7 @@ import { createMiddleware } from "hono/factory";
 import type { AppEnv } from "@infrastructure/http/types.js";
 
 /**
- * Restricts access to administrators only.
+ * Ensures the current user has admin privileges.
  */
 export const requireAdmin = createMiddleware<AppEnv>(async (c, next) => {
   const user = c.var.user;

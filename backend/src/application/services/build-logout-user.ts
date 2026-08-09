@@ -6,6 +6,10 @@ export type LogoutUserInput = {
   sessionToken?: string;
 };
 
+/**
+ * Builds the logout use case.
+ */
+
 export const buildLogoutUser = (
   sessionRepository: SessionRepository,
   logger: Logger,
