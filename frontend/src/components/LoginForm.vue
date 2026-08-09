@@ -52,14 +52,8 @@ const onSubmit = async () => {
 
   try {
     const response = await login(result.data)
-    const responseUser = (response as { user?: typeof response }).user ?? response
 
-    setUser({
-      id: responseUser.id,
-      name: responseUser.name,
-      email: responseUser.email,
-      role: responseUser.role,
-    })
+    setUser(response)
     emit('success')
   } catch {
     loginError.value = 'Invalid email or password.'
