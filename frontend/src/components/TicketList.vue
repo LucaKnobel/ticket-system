@@ -18,12 +18,19 @@ const canManage = (ticket: TicketResponseDto) => {
   if (props.currentUser.role === 'ADMIN') return true
   return ticket.createdBy.id === props.currentUser.id
 }
+
+const formatDateTime = (value: string) => {
+  return new Date(value).toLocaleString('de-CH', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
+}
 </script>
 
 <template>
   <div class="ticket-list-card">
     <div class="table-wrapper">
-      <table v-if="tickets.length > 0">
+      <table v-if="tickets.length > 0" class="desktop-table">
         <thead>
           <tr>
             <th>Title</th>
@@ -46,7 +53,7 @@ const canManage = (ticket: TicketResponseDto) => {
             </td>
             <td>{{ ticket.createdBy.name }}</td>
             <td>{{ ticket.assignedTo?.name ?? 'Unassigned' }}</td>
-            <td>{{ new Date(ticket.updatedAt).toLocaleString() }}</td>
+            <td>{{ formatDateTime(ticket.updatedAt) }}</td>
             <td>
               <div class="actions">
                 <button type="button" class="ghost-button" @click="emit('view', ticket)">View</button>
@@ -59,6 +66,41 @@ const canManage = (ticket: TicketResponseDto) => {
           </tr>
         </tbody>
       </table>
+
+      <div v-if="tickets.length > 0" class="mobile-ticket-list" aria-label="Ticket list">
+        <article v-for="ticket in tickets" :key="ticket.id" class="ticket-card">
+          <div class="ticket-card-header">
+            <h3>{{ ticket.title }}</h3>
+            <span class="status-badge" :data-status="ticket.status">{{ ticket.status.replace(/_/g, ' ') }}</span>
+          </div>
+
+          <div class="ticket-card-meta">
+            <div class="ticket-chip-row">
+              <span class="priority-badge" :data-priority="ticket.priority">{{ ticket.priority }}</span>
+            </div>
+            <div class="ticket-meta-row">
+              <span class="meta-label">Assigned</span>
+              <span class="meta-value">{{ ticket.assignedTo?.name ?? 'Unassigned' }}</span>
+            </div>
+            <div class="ticket-meta-row">
+              <span class="meta-label">Created by</span>
+              <span class="meta-value">{{ ticket.createdBy.name }}</span>
+            </div>
+            <div class="ticket-meta-row">
+              <span class="meta-label">Updated</span>
+              <span class="meta-value">{{ formatDateTime(ticket.updatedAt) }}</span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="ghost-button" @click="emit('view', ticket)">View</button>
+            <button v-if="canManage(ticket)" type="button" class="ghost-button"
+              @click="emit('edit', ticket)">Edit</button>
+            <button v-if="canManage(ticket)" type="button" class="ghost-button danger"
+              @click="emit('delete', ticket)">Delete</button>
+          </div>
+        </article>
+      </div>
 
       <div v-else-if="!loading" class="empty-state">
         <p>No tickets available.</p>
@@ -74,14 +116,40 @@ const canManage = (ticket: TicketResponseDto) => {
 <style scoped>
 .ticket-list-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+
+
   overflow: hidden;
+  max-width: 100%;
 }
 
 .table-wrapper {
-  overflow-x: auto;
+  overflow-x: hidden;
+}
+
+.desktop-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.desktop-table th,
+.desktop-table td {
+  padding: 0.9rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.desktop-table thead th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.desktop-table tbody tr+tr td {
+  border-top: 1px solid var(--color-border);
 }
 
 .actions {
@@ -95,6 +163,7 @@ const canManage = (ticket: TicketResponseDto) => {
   color: var(--color-text);
   border: 1px solid var(--color-border);
   padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
 }
 
 .ghost-button.danger {
@@ -103,7 +172,7 @@ const canManage = (ticket: TicketResponseDto) => {
 }
 
 .empty-state {
-  padding: 2rem;
+  padding: 2rem 1rem;
   text-align: center;
   color: var(--color-text-muted);
 }
@@ -118,6 +187,7 @@ const canManage = (ticket: TicketResponseDto) => {
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .status-badge[data-status='OPEN'] {
@@ -150,10 +220,104 @@ const canManage = (ticket: TicketResponseDto) => {
   color: #b91c1c;
 }
 
+.mobile-ticket-list {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.ticket-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: linear-gradient(180deg, var(--color-surface) 0%, rgba(255, 255, 255, 0.96) 100%);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.ticket-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ticket-card h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ticket-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.ticket-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.meta-label {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.meta-value {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.ticket-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 767px) {
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-ticket-list {
+    display: flex;
+  }
+
+  .empty-state {
+    padding: 1.5rem 1rem;
+  }
+}
+
 @media (max-width: 640px) {
   .actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .ticket-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ticket-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+
+  .meta-value {
+    text-align: left;
   }
 }
 </style>
