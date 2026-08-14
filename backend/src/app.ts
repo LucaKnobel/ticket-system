@@ -1,16 +1,16 @@
 import { Hono } from "hono";
-import { secureHeaders } from "hono/secure-headers";
 
 /* Logging */
 import { logger } from "@infrastructure/logging/logger.js";
 import { errorHandler } from "@infrastructure/http/error-handler.js";
+import { secureHeadersMiddleware } from "@infrastructure/http/middleware/secure-headers-middleware.js";
 import { authRoutes } from "@infrastructure/http/routes/auth-routes.js";
 import { ticketRoutes } from "@infrastructure/http/routes/ticket-routes.js";
 import { userRoutes } from "@infrastructure/http/routes/user-routes.js";
 
 export const app = new Hono();
 
-app.use(secureHeaders());
+app.use("*", secureHeadersMiddleware);
 
 app.use("*", async (c, next) => {
   const startedAt = Date.now();
